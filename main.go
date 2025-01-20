@@ -2,28 +2,33 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/genewoo/joker/internal/deck"
 )
 
 // DealStrategy defines the interface for dealing cards
 type DealStrategy interface {
-	Deal(deck *Deck, numCards int) []Card
+	Deal(deck *deck.Deck, numCards int) ([]*deck.Card, error)
 }
 
 // StandardDealer implements the standard dealing strategy
 type StandardDealer struct{}
 
-func (sd *StandardDealer) Deal(deck *Deck, numCards int) []Card {
-	if numCards > len(deck.cards) {
-		numCards = len(deck.cards)
+func (sd *StandardDealer) Deal(deck *deck.Deck, numCards int) ([]*deck.Card, error) {
+	if deck.Count() == 0 {
+		return nil, fmt.Errorf("cannot deal from empty deck")
 	}
-	cards := deck.cards[:numCards]
-	deck.cards = deck.cards[numCards:]
-	return cards
+	if numCards > deck.Count() {
+		numCards = deck.Count()
+	}
+	cards := deck.Cards[:numCards]
+	deck.Cards = deck.Cards[numCards:]
+	return cards, nil
 }
 
 func main() {
 	// Create a deck excluding specific cards
-	deck := NewDeck(true, "A♠", "K♥", "7♦")
+	deck := deck.NewDeck(true, "A♠", "K♥", "7♦")
 	deck.Shuffle()
 
 	fmt.Println("Created deck excluding A♠, K♥, and 7♦")
@@ -31,11 +36,16 @@ func main() {
 	dealer := &StandardDealer{}
 
 	// Deal 5 cards
-	hand := dealer.Deal(deck, 5)
-	fmt.Println("Dealt cards:")
-	for _, card := range hand {
-		fmt.Printf("%s%s\n", card.Value, card.Suit)
+	hand, err := dealer.Deal(deck, 5)
+	if err != nil {
+		fmt.Println("Error dealing cards:", err)
+		return
 	}
 
-	fmt.Printf("\nRemaining cards in deck: %d\n", len(deck.cards))
+	fmt.Println("\nDealt cards:")
+	for i, card := range hand {
+		fmt.Printf("%d: %s%s\n", i+1, card.Value, card.Suit)
+	}
+
+	fmt.Printf("\nRemaining cards in deck: %d\n", deck.Count())
 }
