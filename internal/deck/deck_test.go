@@ -2,51 +2,52 @@ package deck
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestNewCard(t *testing.T) {
+type DeckTestSuite struct {
+	suite.Suite
+}
+
+func TestDeckSuite(t *testing.T) {
+	suite.Run(t, new(DeckTestSuite))
+}
+
+func (s *DeckTestSuite) TestNewCard() {
 	card := NewCard("A", "♠")
-	if card.Suit != "♠" || card.Value != "A" {
-		t.Errorf("Expected A♠, got %s%s", card.Value, card.Suit)
-	}
+	assert.Equal(s.T(), "♠", card.Suit, "Suit should match")
+	assert.Equal(s.T(), "A", card.Value, "Value should match")
 }
 
-func TestNewDeck(t *testing.T) {
+func (s *DeckTestSuite) TestNewDeck() {
 	deck := NewDeck()
-	if deck.Count() != 52 {
-		t.Errorf("Expected 52 cards, got %d", deck.Count())
-	}
+	assert.Equal(s.T(), 52, deck.Count(), "Standard deck should have 52 cards")
 }
 
-func TestNewDeckWithJokers(t *testing.T) {
+func (s *DeckTestSuite) TestNewDeckWithJokers() {
 	deck := NewDeckWithJokers()
-	if deck.Count() != 54 {
-		t.Errorf("Expected 54 cards, got %d", deck.Count())
-	}
+	assert.Equal(s.T(), 54, deck.Count(), "Deck with jokers should have 54 cards")
 }
 
-func TestCount(t *testing.T) {
+func (s *DeckTestSuite) TestCount() {
 	deck := NewDeck()
-	if deck.Count() != 52 {
-		t.Errorf("Expected 52 cards, got %d", deck.Count())
-	}
+	assert.Equal(s.T(), 52, deck.Count(), "Standard deck should have 52 cards")
 }
 
-func TestShuffle(t *testing.T) {
+func (s *DeckTestSuite) TestShuffle() {
 	deck1 := NewDeck()
 	deck2 := NewDeck()
 
-	// Get initial order of both decks
 	initialOrder1 := make([]*Card, len(deck1.Cards))
 	initialOrder2 := make([]*Card, len(deck2.Cards))
 	copy(initialOrder1, deck1.Cards)
 	copy(initialOrder2, deck2.Cards)
 
-	// Shuffle both decks
 	deck1.Shuffle()
 	deck2.Shuffle()
 
-	// Check if shuffled decks are different from initial order
 	sameOrder1 := true
 	sameOrder2 := true
 	for i := range deck1.Cards {
@@ -62,21 +63,34 @@ func TestShuffle(t *testing.T) {
 		}
 	}
 
-	if sameOrder1 || sameOrder2 {
-		t.Error("Shuffle did not change the deck order")
-	}
+	assert.False(s.T(), sameOrder1 || sameOrder2, "Shuffle should change the deck order")
 }
 
-func TestNewDeckWithMasks(t *testing.T) {
+func (s *DeckTestSuite) TestNewDeckWithMasks() {
 	deck := NewDeck("A♠", "K♥")
-	if deck.Count() != 50 {
-		t.Errorf("Expected 50 cards after masking, got %d", deck.Count())
+	assert.Equal(s.T(), 50, deck.Count(), "Deck with masks should have 50 cards")
+
+	// Verify masked cards are not in the deck
+	for _, card := range deck.Cards {
+		assert.False(s.T(),
+			card.Value == "A" && card.Suit == "♠",
+			"A♠ should be masked")
+		assert.False(s.T(),
+			card.Value == "K" && card.Suit == "♥",
+			"K♥ should be masked")
 	}
 }
 
-func TestNewDeckWithJokersWithMasks(t *testing.T) {
+func (s *DeckTestSuite) TestNewDeckWithJokersWithMasks() {
 	deck := NewDeckWithJokers("A♠", "K♥")
-	if deck.Count() != 52 {
-		t.Errorf("Expected 52 cards after masking, got %d", deck.Count())
+	assert.Equal(s.T(), 52, deck.Count(), "Deck with jokers and masks should have 52 cards")
+
+	// Verify both jokers are present
+	jokerCount := 0
+	for _, card := range deck.Cards {
+		if card.Value == "Joker" {
+			jokerCount++
+		}
 	}
+	assert.Equal(s.T(), 2, jokerCount, "Deck should contain exactly 2 jokers")
 }
