@@ -23,7 +23,7 @@ func (sd *StandardDealer) Deal(deck *Deck, numCards int) []Card {
 
 func main() {
 	// Create a deck excluding specific cards
-	deck := NewDeck("A♠", "K♥", "7♦")
+	deck := NewDeck(true, "A♠", "K♥", "7♦")
 	deck.Shuffle()
 
 	fmt.Println("Created deck excluding A♠, K♥, and 7♦")

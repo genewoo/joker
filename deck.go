@@ -18,7 +18,8 @@ type Deck struct {
 
 // NewDeck creates a new deck of cards, optionally excluding cards that match the provided masks
 // Each mask should be in the format "ValueSuit" (e.g., "A♠", "10♥")
-func NewDeck(masks ...string) *Deck {
+// includeJokers determines whether to include two joker cards (Red and White)
+func NewDeck(includeJokers bool, masks ...string) *Deck {
 	suits := []string{"♠", "♥", "♦", "♣"}
 	values := []string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
 
@@ -36,6 +37,11 @@ func NewDeck(masks ...string) *Deck {
 				cards = append(cards, Card{Suit: suit, Value: value})
 			}
 		}
+	}
+
+	if includeJokers {
+		cards = append(cards, Card{Suit: "Red", Value: "Joker"})
+		cards = append(cards, Card{Suit: "White", Value: "Joker"})
 	}
 	return &Deck{cards: cards}
 }
