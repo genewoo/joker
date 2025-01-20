@@ -1,9 +1,3 @@
-// Package deck provides functionality for creating and manipulating decks of cards
-// Changes made:
-// - Made original NewDeck private as newDeck
-// - Added public NewDeck that creates decks without jokers
-// - Added NewDeckWithJokers for decks with jokers
-// - Added detailed documentation for all public methods
 package deck
 
 import (
@@ -90,4 +84,19 @@ func (d *Deck) Shuffle() {
 	r.Shuffle(len(d.Cards), func(i, j int) {
 		d.Cards[i], d.Cards[j] = d.Cards[j], d.Cards[i]
 	})
+}
+
+// Times creates a new deck with multiple copies of the current deck
+// count: number of copies to create (must be positive)
+// Returns a new Deck containing count copies of the current deck's cards
+func (d *Deck) Times(count int) *Deck {
+	if count <= 0 {
+		return &Deck{Cards: []*Card{}}
+	}
+
+	var cards []*Card
+	for i := 0; i < count; i++ {
+		cards = append(cards, d.Cards...)
+	}
+	return &Deck{Cards: cards}
 }

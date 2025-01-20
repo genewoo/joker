@@ -94,3 +94,68 @@ func (s *DeckTestSuite) TestNewDeckWithJokersWithMasks() {
 	}
 	assert.Equal(s.T(), 2, jokerCount, "Deck should contain exactly 2 jokers")
 }
+
+func (s *DeckTestSuite) TestTimes() {
+	deck := NewDeck()
+
+	// Test single copy
+	singleCopy := deck.Times(1)
+	assert.Equal(s.T(), 52, singleCopy.Count(), "Single copy should have 52 cards")
+	assert.Equal(s.T(), deck.Cards, singleCopy.Cards, "Single copy should match original deck")
+
+	// Test multiple copies
+	doubleDeck := deck.Times(2)
+	assert.Equal(s.T(), 104, doubleDeck.Count(), "Double deck should have 104 cards")
+
+	// Verify first and second halves match original deck
+	assert.Equal(s.T(), deck.Cards, doubleDeck.Cards[:52], "First half should match original deck")
+	assert.Equal(s.T(), deck.Cards, doubleDeck.Cards[52:], "Second half should match original deck")
+
+	// Test edge cases
+	emptyDeck := deck.Times(0)
+	assert.Equal(s.T(), 0, emptyDeck.Count(), "Zero copies should create empty deck")
+
+	negativeDeck := deck.Times(-1)
+	assert.Equal(s.T(), 0, negativeDeck.Count(), "Negative copies should create empty deck")
+}
+
+func (s *DeckTestSuite) TestTimesAndShuffle() {
+	deck := NewDeck()
+	doubleDeck := deck.Times(2)
+
+	// Make copies of original deck halves
+	firstHalf := make([]*Card, 52)
+	secondHalf := make([]*Card, 52)
+	copy(firstHalf, doubleDeck.Cards[:52])
+	copy(secondHalf, doubleDeck.Cards[52:])
+
+	// Shuffle the double deck
+	doubleDeck.Shuffle()
+
+	// Verify all cards are still present
+	cardCount := make(map[*Card]int)
+	for _, card := range doubleDeck.Cards {
+		cardCount[card]++
+	}
+
+	// Verify each card appears exactly twice
+	for _, card := range deck.Cards {
+		assert.Equal(s.T(), 2, cardCount[card], "Each card should appear exactly twice")
+	}
+
+	// Verify the deck is shuffled (both halves are mixed)
+	firstHalfShuffled := false
+	secondHalfShuffled := false
+
+	for i := 0; i < 52; i++ {
+		if doubleDeck.Cards[i] != firstHalf[i] {
+			firstHalfShuffled = true
+		}
+		if doubleDeck.Cards[i+52] != secondHalf[i] {
+			secondHalfShuffled = true
+		}
+	}
+
+	assert.True(s.T(), firstHalfShuffled || secondHalfShuffled,
+		"Shuffle should mix both halves of the double deck")
+}
