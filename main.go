@@ -8,22 +8,27 @@ import (
 
 // DealStrategy defines the interface for dealing cards
 type DealStrategy interface {
-	Deal(deck *deck.Deck, numCards int) ([]*deck.Card, error)
+	Deal(deck *deck.Deck, numCards int) (*deck.Hand, error)
 }
 
 // StandardDealer implements the standard dealing strategy
 type StandardDealer struct{}
 
-func (sd *StandardDealer) Deal(deck *deck.Deck, numCards int) ([]*deck.Card, error) {
-	if deck.Count() == 0 {
+func (sd *StandardDealer) Deal(d *deck.Deck, numCards int) (*deck.Hand, error) {
+	if d.Count() == 0 {
 		return nil, fmt.Errorf("cannot deal from empty deck")
 	}
-	if numCards > deck.Count() {
-		numCards = deck.Count()
+	if numCards > d.Count() {
+		numCards = d.Count()
 	}
-	cards := deck.Cards[:numCards]
-	deck.Cards = deck.Cards[numCards:]
-	return cards, nil
+	cards := d.Cards[:numCards]
+	d.Cards = d.Cards[numCards:]
+
+	hand := deck.NewHand()
+	for _, card := range cards {
+		hand.AddCard(card)
+	}
+	return hand, nil
 }
 
 func main() {
@@ -43,7 +48,8 @@ func main() {
 	}
 
 	fmt.Println("\nDealt cards:")
-	for i, card := range hand {
+	for i := 0; i < hand.Count(); i++ {
+		card := hand.Cards[i]
 		fmt.Printf("%d: %s%s\n", i+1, card.Value, card.Suit)
 	}
 
