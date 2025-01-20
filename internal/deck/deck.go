@@ -1,3 +1,9 @@
+// Package deck provides functionality for creating and manipulating decks of cards
+// Changes made:
+// - Made original NewDeck private as newDeck
+// - Added public NewDeck that creates decks without jokers
+// - Added NewDeckWithJokers for decks with jokers
+// - Added detailed documentation for all public methods
 package deck
 
 import (
@@ -11,7 +17,10 @@ type Card struct {
 	Value string
 }
 
-// NewCard creates a new Card instance
+// NewCard creates a new Card instance with the specified value and suit
+// value: The card's value (e.g., "A", "2", "J", "Q", "K")
+// suit: The card's suit (e.g., "♠", "♥", "♦", "♣")
+// Returns a pointer to the newly created Card
 func NewCard(value, suit string) *Card {
 	return &Card{
 		Suit:  suit,
@@ -25,14 +34,15 @@ type Deck struct {
 }
 
 // Count returns the number of remaining cards in the deck
+// Returns the current number of cards in the deck as an integer
 func (d *Deck) Count() int {
 	return len(d.Cards)
 }
 
-// NewDeck creates a new deck of cards, optionally excluding cards that match the provided masks
+// newDeck creates a new deck of cards, optionally excluding cards that match the provided masks
 // Each mask should be in the format "ValueSuit" (e.g., "A♠", "10♥")
 // includeJokers determines whether to include two joker cards (Red and White)
-func NewDeck(includeJokers bool, masks ...string) *Deck {
+func newDeck(includeJokers bool, masks ...string) *Deck {
 	suits := []string{"♠", "♥", "♦", "♣"}
 	values := []string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
 
@@ -59,7 +69,22 @@ func NewDeck(includeJokers bool, masks ...string) *Deck {
 	return &Deck{Cards: cards}
 }
 
-// Shuffle randomizes the order of cards in the deck
+// NewDeck creates a new standard deck of 52 cards without jokers
+// masks: Optional list of cards to exclude from the deck in "ValueSuit" format (e.g., "A♠", "10♥")
+// Returns a pointer to the newly created Deck
+func NewDeck(masks ...string) *Deck {
+	return newDeck(false, masks...)
+}
+
+// NewDeckWithJokers creates a new deck of 54 cards including two jokers (Red and White)
+// masks: Optional list of cards to exclude from the deck in "ValueSuit" format (e.g., "A♠", "10♥")
+// Returns a pointer to the newly created Deck
+func NewDeckWithJokers(masks ...string) *Deck {
+	return newDeck(true, masks...)
+}
+
+// Shuffle randomizes the order of cards in the deck using the Fisher-Yates algorithm
+// The shuffle is seeded with the current time to ensure different results each time
 func (d *Deck) Shuffle() {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	r.Shuffle(len(d.Cards), func(i, j int) {
