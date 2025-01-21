@@ -1,6 +1,7 @@
 package deck
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,9 +17,22 @@ func TestDeckSuite(t *testing.T) {
 }
 
 func (s *DeckTestSuite) TestNewCard() {
-	card := NewCard("A", "♠")
-	assert.Equal(s.T(), "♠", card.Suit, "Suit should match")
-	assert.Equal(s.T(), "A", card.Value, "Value should match")
+	tests := []struct {
+		value    string
+		suit     string
+		expected *Card
+	}{
+		{"A", "♠", &Card{Suit: "♠", Value: "A"}},
+		{"10", "♥", &Card{Suit: "♥", Value: "10"}},
+		{"Joker", "Red", &Card{Suit: "Red", Value: "Joker"}},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.value+tt.suit, func() {
+			card := NewCard(tt.value, tt.suit)
+			assert.Equal(s.T(), tt.expected, card)
+		})
+	}
 }
 
 func (s *DeckTestSuite) TestNewDeck() {
@@ -67,17 +81,40 @@ func (s *DeckTestSuite) TestShuffle() {
 }
 
 func (s *DeckTestSuite) TestNewDeckWithMasks() {
-	deck := NewDeck("A♠", "K♥")
-	assert.Equal(s.T(), 50, deck.Count(), "Deck with masks should have 50 cards")
+	tests := []struct {
+		masks    []string
+		expected int
+		excluded []*Card
+	}{
+		{
+			masks:    []string{"A♠", "K♥"},
+			expected: 50,
+			excluded: []*Card{{Suit: "♠", Value: "A"}, {Suit: "♥", Value: "K"}},
+		},
+		{
+			masks:    []string{"10♦", "J♣"},
+			expected: 50,
+			excluded: []*Card{{Suit: "♦", Value: "10"}, {Suit: "♣", Value: "J"}},
+		},
+		{
+			masks:    []string{},
+			expected: 52,
+			excluded: []*Card{},
+		},
+	}
 
-	// Verify masked cards are not in the deck
-	for _, card := range deck.Cards {
-		assert.False(s.T(),
-			card.Value == "A" && card.Suit == "♠",
-			"A♠ should be masked")
-		assert.False(s.T(),
-			card.Value == "K" && card.Suit == "♥",
-			"K♥ should be masked")
+	for _, tt := range tests {
+		s.Run(strings.Join(tt.masks, ","), func() {
+			deck := NewDeck(tt.masks...)
+			assert.Equal(s.T(), tt.expected, deck.Count())
+
+			// Verify masked cards are not in the deck
+			for _, card := range deck.Cards {
+				for _, excluded := range tt.excluded {
+					assert.NotEqual(s.T(), excluded, card)
+				}
+			}
+		})
 	}
 }
 
