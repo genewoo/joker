@@ -3,31 +3,48 @@ package main
 import (
 	"fmt"
 
-	"github.com/genewoo/joker/internal/dealer"
 	"github.com/genewoo/joker/internal/deck"
 )
 
 func main() {
-	// Create a deck excluding specific cards
-	deck := deck.NewDeck("A♠", "K♥", "7♦")
-	deck.Shuffle()
+	// Create 2 decks with Jokers and combine them
+	d := deck.NewDeckWithJokers().Times(2)
+	d.Shuffle()
 
-	fmt.Println("Created deck excluding A♠, K♥, and 7♦")
-
-	dealer := &dealer.StandardDealer{}
-
-	// Deal 5 cards
-	hand, err := dealer.Deal(deck, 5)
-	if err != nil {
-		fmt.Println("Error dealing cards:", err)
-		return
+	// Create 4 hands
+	hands := make([]*deck.Hand, 4)
+	for i := range hands {
+		hands[i] = deck.NewHand()
 	}
 
-	fmt.Println("\nDealt cards:")
-	for i := 0; i < hand.Count(); i++ {
-		card := hand.Cards[i]
-		fmt.Printf("%d: %s%s\n", i+1, card.Value, card.Suit)
+	// Deal 27 cards to each hand
+	for i := 0; i < 27; i++ {
+		for _, hand := range hands {
+			if d.Count() > 0 {
+				hand.AddCard(d.Cards[0])
+				d.Cards = d.Cards[1:]
+			}
+		}
 	}
 
-	fmt.Printf("\nRemaining cards in deck: %d\n", deck.Count())
+	// Create organizer and sort hands
+	organizer := &deck.DefaultOrganizer{}
+	for _, hand := range hands {
+		organizer.Sort(hand.Cards)
+	}
+
+	// Print table headers
+	fmt.Printf("\n%-10s%-10s%-10s%-10s\n", "Hand 1", "Hand 2", "Hand 3", "Hand 4")
+	fmt.Println("----------------------------------------")
+
+	// Print cards in tabular format
+	for i := 0; i < 27; i++ {
+		for j := 0; j < 4; j++ {
+			card := hands[j].Cards[i]
+			fmt.Printf("%-10s", fmt.Sprintf("%s%s", card.Value, card.Suit))
+		}
+		fmt.Println()
+	}
+
+	fmt.Printf("\nRemaining cards in deck: %d\n", d.Count())
 }

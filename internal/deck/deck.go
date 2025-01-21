@@ -58,7 +58,7 @@ func newDeck(includeJokers bool, masks ...string) *Deck {
 
 	if includeJokers {
 		cards = append(cards, &Card{Suit: "Red", Value: "Joker"})
-		cards = append(cards, &Card{Suit: "White", Value: "Joker"})
+		cards = append(cards, &Card{Suit: "BW", Value: "Joker"})
 	}
 	return &Deck{Cards: cards}
 }
