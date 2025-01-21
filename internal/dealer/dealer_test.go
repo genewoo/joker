@@ -149,3 +149,33 @@ func TestStandardDealer_Deal(t *testing.T) {
 		})
 	}
 }
+
+func TestDealModifiesDeck(t *testing.T) {
+	// Create a new deck
+	d := deck.NewDeck()
+	initialCount := d.Count()
+
+	// Create dealer and deal cards
+	dealer := &StandardDealer{}
+	hands, err := dealer.Deal(d, 5, 2) // Deal 5 cards to 2 hands
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(hands))
+
+	// Verify deck count decreased by total cards dealt
+	expectedCount := initialCount - (5 * 2)
+	assert.Equal(t, expectedCount, d.Count())
+
+	// Verify dealt cards are no longer in the deck
+	for _, hand := range hands {
+		for _, card := range hand.Cards {
+			found := false
+			for _, remainingCard := range d.Cards {
+				if card == remainingCard {
+					found = true
+					break
+				}
+			}
+			assert.False(t, found, "Dealt card should not be in the deck")
+		}
+	}
+}
