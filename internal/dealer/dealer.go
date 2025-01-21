@@ -27,7 +27,7 @@ func (sd *StandardDealer) Deal(d *deck.Deck, numCards, hands int) ([]*deck.Hand,
 
 	result := make([]*deck.Hand, hands)
 	for i := 0; i < hands; i++ {
-		result[i] = deck.NewHand()
+		result[i] = &deck.Hand{Cards: []*deck.Card{}}
 	}
 
 	for i := 0; i < numCards; i++ {

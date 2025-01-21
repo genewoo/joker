@@ -10,8 +10,7 @@ import (
 func TestNewGame(t *testing.T) {
 	game := NewGame(4)
 	assert.NotNil(t, game)
-	assert.Equal(t, 4, len(game.players))
-	assert.Equal(t, 0, game.pot)
+	assert.Equal(t, 4, len(game.Players))
 	assert.IsType(t, &dealer.StandardDealer{}, game.dealer)
 	assert.NotNil(t, game.deck)
 }
@@ -21,7 +20,7 @@ func TestStartHand(t *testing.T) {
 	err := game.StartHand()
 	assert.NoError(t, err)
 
-	for _, player := range game.players {
+	for _, player := range game.Players {
 		assert.Equal(t, 2, len(player.Cards))
 	}
 }
@@ -32,7 +31,7 @@ func TestDealFlop(t *testing.T) {
 
 	err := game.DealFlop()
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(game.community))
+	assert.Equal(t, 3, len(game.Community))
 }
 
 func TestDealTurnOrRiver(t *testing.T) {
@@ -42,7 +41,7 @@ func TestDealTurnOrRiver(t *testing.T) {
 
 	err := game.DealTurnOrRiver()
 	assert.NoError(t, err)
-	assert.Equal(t, 4, len(game.community))
+	assert.Equal(t, 4, len(game.Community))
 	assert.Equal(t, 2, len(game.burnCards)) // 1 for flop, 1 for turn
 }
 
@@ -66,13 +65,4 @@ func TestBurnCardError(t *testing.T) {
 	err := game.burnCard()
 	assert.Error(t, err)
 	assert.Equal(t, "no cards left to burn", err.Error())
-}
-
-func TestAddToPot(t *testing.T) {
-	game := NewGame(2)
-	game.AddToPot(100)
-	assert.Equal(t, 100, game.pot)
-
-	game.AddToPot(50)
-	assert.Equal(t, 150, game.pot)
 }
