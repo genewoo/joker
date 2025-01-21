@@ -8,12 +8,16 @@ import (
 )
 
 type Game struct {
-	dealer    dealer.DealStrategy
-	deck      *deck.Deck
-	players   []Player
-	community []*deck.Card
+	dealer dealer.DealStrategy
+	deck   *deck.Deck
+
+	// Players contains all players in the game
+	Players []Player
+
+	// Community contains the community cards on the table
+	Community []*deck.Card
+
 	burnCards []*deck.Card
-	pot       int
 }
 
 type Player struct {
@@ -26,25 +30,23 @@ func NewGame(numPlayers int) *Game {
 	return &Game{
 		dealer:    &dealer.StandardDealer{},
 		deck:      deck.NewDeck(),
-		players:   make([]Player, numPlayers),
-		community: make([]*deck.Card, 0, 5),
-		pot:       0,
+		Players:   make([]Player, numPlayers),
+		Community: make([]*deck.Card, 0, 5),
 	}
 }
 
 func (g *Game) StartHand() error {
 	g.deck.Shuffle()
-	g.community = g.community[:0]
-	g.pot = 0
+	g.Community = g.Community[:0]
 
 	// Deal 2 cards to each player
-	hands, err := g.dealer.Deal(g.deck, 2, len(g.players))
+	hands, err := g.dealer.Deal(g.deck, 2, len(g.Players))
 	if err != nil {
 		return err
 	}
 
-	for i := range g.players {
-		g.players[i].Cards = hands[i].Cards
+	for i := range g.Players {
+		g.Players[i].Cards = hands[i].Cards
 	}
 	return nil
 }
@@ -68,7 +70,7 @@ func (g *Game) DealCommunityCards(numCards int) error {
 	if err != nil {
 		return err
 	}
-	g.community = append(g.community, hands[0].Cards...)
+	g.Community = append(g.Community, hands[0].Cards...)
 	return nil
 }
 
@@ -81,5 +83,4 @@ func (g *Game) DealTurnOrRiver() error {
 }
 
 func (g *Game) AddToPot(amount int) {
-	g.pot += amount
 }
