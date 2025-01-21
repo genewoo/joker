@@ -4,8 +4,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
+
+type mockOrganizer struct {
+	mock.Mock
+}
+
+func (m *mockOrganizer) Sort(cards []*Card) {
+	m.Called(cards)
+}
 
 type HandsTestSuite struct {
 	suite.Suite
@@ -20,6 +29,80 @@ func (s *HandsTestSuite) TestNewHand() {
 	assert.NotNil(s.T(), hand)
 	assert.Equal(s.T(), 0, hand.Count())
 	assert.Empty(s.T(), hand.Cards)
+}
+
+func (s *HandsTestSuite) TestOrganizerSorting() {
+	tests := []struct {
+		name     string
+		cards    []*Card
+		expected []*Card
+	}{
+		{
+			name:     "Empty hand",
+			cards:    []*Card{},
+			expected: []*Card{},
+		},
+		{
+			name:     "Single card",
+			cards:    []*Card{{Value: "A", Suit: "♠"}},
+			expected: []*Card{{Value: "A", Suit: "♠"}},
+		},
+		{
+			name: "Jokers first",
+			cards: []*Card{
+				{Value: "K", Suit: "♠"},
+				{Value: "Joker", Suit: "Red"},
+				{Value: "A", Suit: "♥"},
+				{Value: "Joker", Suit: "BW"},
+			},
+			expected: []*Card{
+				{Value: "Joker", Suit: "Red"},
+				{Value: "Joker", Suit: "BW"},
+				{Value: "A", Suit: "♥"},
+				{Value: "K", Suit: "♠"},
+			},
+		},
+		{
+			name: "Full hand sorting",
+			cards: []*Card{
+				{Value: "10", Suit: "♦"},
+				{Value: "J", Suit: "♣"},
+				{Value: "A", Suit: "♠"},
+				{Value: "5", Suit: "♥"},
+			},
+			expected: []*Card{
+				{Value: "A", Suit: "♠"},
+				{Value: "J", Suit: "♣"},
+				{Value: "10", Suit: "♦"},
+				{Value: "5", Suit: "♥"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			hand := &Hand{
+				Cards:     tt.cards,
+				organizer: &DefaultOrganizer{},
+			}
+			hand.Sort()
+			assert.Equal(s.T(), tt.expected, hand.Cards)
+		})
+	}
+}
+
+func (s *HandsTestSuite) TestSetOrganizer() {
+	mockOrg := new(mockOrganizer)
+	hand := NewHand()
+
+	testCards := []*Card{{Value: "A", Suit: "♠"}}
+	mockOrg.On("Sort", testCards).Return()
+
+	hand.SetOrganizer(mockOrg)
+	hand.Cards = testCards
+	hand.Sort()
+
+	mockOrg.AssertCalled(s.T(), "Sort", testCards)
 }
 
 func (s *HandsTestSuite) TestAddCard() {
