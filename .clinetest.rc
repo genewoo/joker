@@ -1,0 +1,8 @@
+- Use testify package
+- Use Table-Driven Tests
+- Mock External Dependencies by Using mock.mock
+- Test Edge Cases
+- Test Exception Handling
+- Parallelize Tests When Appropriate
+- Clean Up After Tests
+- Use Subtests for Grouping and Clarity

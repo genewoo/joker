@@ -7,25 +7,35 @@ import (
 )
 
 type DealStrategy interface {
-	Deal(deck *deck.Deck, numCards int) (*deck.Hand, error)
+	Deal(deck *deck.Deck, numCards, hands int) ([]*deck.Hand, error)
 }
 
 // StandardDealer implements the standard dealing strategy
 type StandardDealer struct{}
 
-func (sd *StandardDealer) Deal(d *deck.Deck, numCards int) (*deck.Hand, error) {
+func (sd *StandardDealer) Deal(d *deck.Deck, numCards, hands int) ([]*deck.Hand, error) {
 	if d.Count() == 0 {
 		return nil, fmt.Errorf("cannot deal from empty deck")
 	}
-	if numCards > d.Count() {
-		numCards = d.Count()
+	if numCards <= 0 {
+		return nil, fmt.Errorf("numCards must be positive")
 	}
-	cards := d.Cards[:numCards]
-	d.Cards = d.Cards[numCards:]
+	totalCards := numCards * hands
+	if totalCards > d.Count() {
+		return nil, fmt.Errorf("not enough cards in deck")
+	}
 
-	hand := deck.NewHand()
-	for _, card := range cards {
-		hand.AddCard(card)
+	result := make([]*deck.Hand, hands)
+	for i := 0; i < hands; i++ {
+		result[i] = deck.NewHand()
 	}
-	return hand, nil
+
+	for i := 0; i < numCards; i++ {
+		for h := 0; h < hands; h++ {
+			card := d.Cards[0]
+			d.Cards = d.Cards[1:]
+			result[h].AddCard(card)
+		}
+	}
+	return result, nil
 }

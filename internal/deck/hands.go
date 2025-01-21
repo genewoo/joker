@@ -14,7 +14,9 @@ func NewHand() *Hand {
 
 // AddCard adds a card to the hand
 func (h *Hand) AddCard(card *Card) {
-	h.Cards = append(h.Cards, card)
+	if card != nil {
+		h.Cards = append(h.Cards, card)
+	}
 }
 
 // RemoveCard removes a card from the hand at the specified index
