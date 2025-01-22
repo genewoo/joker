@@ -308,17 +308,15 @@ const (
 
 // HandStrength contains detailed information about a hand's strength
 type HandStrength struct {
-	Rank    HandRank
-	Values  []int // Card values in descending order of importance
-	IsWheel bool  // Special case for A-2-3-4-5 straight
+	Rank   HandRank
+	Values []int // Card values in descending order of importance
 }
 
 // NewHandStrength creates and initializes a new HandStrength
 func NewHandStrength() HandStrength {
 	return HandStrength{
-		Rank:    HighCard,
-		Values:  make([]int, 0, 5),
-		IsWheel: false,
+		Rank:   HighCard,
+		Values: make([]int, 0, 5),
 	}
 }
 
