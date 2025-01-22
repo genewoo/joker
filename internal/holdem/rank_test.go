@@ -12,7 +12,7 @@ func TestRankHand(t *testing.T) {
 		name           string
 		playerCards    []*deck.Card
 		communityCards []*deck.Card
-		expectedRank   HandRank
+		expectedRank   HandStrength
 	}{
 		{
 			name: "Royal Flush",
@@ -27,7 +27,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: RoyalFlush,
+			expectedRank: HandStrength{Rank: RoyalFlush},
 		},
 		{
 			name: "Straight Flush",
@@ -42,7 +42,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: StraightFlush,
+			expectedRank: HandStrength{Rank: StraightFlush},
 		},
 		{
 			name: "Four of a Kind",
@@ -57,7 +57,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: FourOfAKind,
+			expectedRank: HandStrength{Rank: FourOfAKind},
 		},
 		{
 			name: "Full House",
@@ -72,7 +72,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: FullHouse,
+			expectedRank: HandStrength{Rank: FullHouse},
 		},
 		{
 			name: "Flush",
@@ -87,7 +87,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: Flush,
+			expectedRank: HandStrength{Rank: Flush},
 		},
 		{
 			name: "Straight 5-9",
@@ -102,7 +102,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: Straight,
+			expectedRank: HandStrength{Rank: Straight},
 		},
 		{
 			name: "Straight A-5",
@@ -117,7 +117,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: Straight,
+			expectedRank: HandStrength{Rank: Straight},
 		},
 		{
 			name: "Straight T-A",
@@ -132,7 +132,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "J", Suit: "♥"},
 				{Value: "A", Suit: "♦"},
 			},
-			expectedRank: Straight,
+			expectedRank: HandStrength{Rank: Straight},
 		},
 		{
 			name: "Three of a Kind",
@@ -147,7 +147,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: ThreeOfAKind,
+			expectedRank: HandStrength{Rank: ThreeOfAKind},
 		},
 		{
 			name: "Two Pair",
@@ -162,7 +162,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: TwoPair,
+			expectedRank: HandStrength{Rank: TwoPair},
 		},
 		{
 			name: "Two Pair Common",
@@ -177,7 +177,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "Q", Suit: "♦"},
 			},
-			expectedRank: TwoPair,
+			expectedRank: HandStrength{Rank: TwoPair},
 		},
 		{
 			name: "One Pair",
@@ -192,7 +192,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: OnePair,
+			expectedRank: HandStrength{Rank: OnePair},
 		},
 		{
 			name: "High Card",
@@ -207,7 +207,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: HighCard,
+			expectedRank: HandStrength{Rank: HighCard},
 		},
 		{
 			name: "Invalid Hand - too few player cards",
@@ -221,7 +221,7 @@ func TestRankHand(t *testing.T) {
 				{Value: "2", Suit: "♥"},
 				{Value: "3", Suit: "♦"},
 			},
-			expectedRank: InvalidHand,
+			expectedRank: HandStrength{Rank: InvalidHand},
 		},
 		{
 			name: "Invalid Hand - too many community cards",
@@ -237,14 +237,14 @@ func TestRankHand(t *testing.T) {
 				{Value: "3", Suit: "♦"},
 				{Value: "4", Suit: "♠"},
 			},
-			expectedRank: InvalidHand,
+			expectedRank: HandStrength{Rank: InvalidHand},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rank, _ := RankHand(tt.playerCards, tt.communityCards)
-			assert.Equal(t, tt.expectedRank.String(), rank.String())
+			assert.Equal(t, tt.expectedRank.Rank, rank.Rank)
 		})
 	}
 }
