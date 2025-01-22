@@ -207,6 +207,24 @@ func TestRankHand(t *testing.T) {
 			},
 		},
 		{
+			name: "Three Pair - Only Select Top 2",
+			playerCards: []*deck.Card{
+				{Value: "A", Suit: "♠"},
+				{Value: "4", Suit: "♥"},
+			},
+			communityCards: []*deck.Card{
+				{Value: "K", Suit: "♦"},
+				{Value: "K", Suit: "♣"},
+				{Value: "J", Suit: "♠"},
+				{Value: "A", Suit: "♥"},
+				{Value: "J", Suit: "♦"},
+			},
+			expectedRank: HandStrength{
+				Rank:   TwoPair,
+				Values: []int{14, 13, 11},
+			},
+		},
+		{
 			name: "One Pair",
 			playerCards: []*deck.Card{
 				{Value: "A", Suit: "♠"},

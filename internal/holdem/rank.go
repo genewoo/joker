@@ -241,13 +241,15 @@ func evaluateHand(hand []*deck.Card) HandStrength {
 			pairValues = append(pairValues, value)
 		}
 	}
-	// sort before pairCount
-	if pairCount >= 1 {
-		// Sort pairs by value
-		sort.Slice(pairValues, func(i, j int) bool {
-			return valueToRank[pairValues[i]] > valueToRank[pairValues[j]]
-		})
-	}
+	// Comment out due to personal thought.
+
+	// // sort before pairCount
+	// if pairCount >= 1 {
+	// 	// Sort pairs by value
+	// 	sort.Slice(pairValues, func(i, j int) bool {
+	// 		return valueToRank[pairValues[i]] > valueToRank[pairValues[j]]
+	// 	})
+	// }
 	if pairCount >= 2 {
 		strength.Rank = TwoPair
 		// find the kicker by filter out the two pair values
