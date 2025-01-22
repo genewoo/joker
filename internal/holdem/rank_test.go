@@ -294,8 +294,85 @@ func TestRankHand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rank, _ := RankHand(tt.playerCards, tt.communityCards)
+			t.Parallel()
+			rank, cards := RankHand(tt.playerCards, tt.communityCards)
+			if tt.expectedRank.Rank == InvalidHand {
+				assert.Nil(t, cards)
+			} else {
+				assert.NotNil(t, cards)
+			}
 			assert.Equal(t, tt.expectedRank.Rank, rank.Rank)
 		})
 	}
+
+	// Additional edge cases
+	t.Run("Empty player cards", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand([]*deck.Card{}, []*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "K", Suit: "♠"},
+			{Value: "Q", Suit: "♠"},
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+		})
+		assert.Nil(t, cards)
+		assert.Equal(t, InvalidHand, rank.Rank)
+	})
+
+	t.Run("Nil player cards", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand(nil, []*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "K", Suit: "♠"},
+			{Value: "Q", Suit: "♠"},
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+		})
+		assert.Nil(t, cards)
+		assert.Equal(t, InvalidHand, rank.Rank)
+	})
+
+	t.Run("Duplicate cards", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand([]*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "A", Suit: "♠"},
+		}, []*deck.Card{
+			{Value: "K", Suit: "♠"},
+			{Value: "Q", Suit: "♠"},
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+		})
+		assert.Nil(t, cards)
+		assert.Equal(t, InvalidHand, rank.Rank)
+	})
+
+	t.Run("Invalid card value", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand([]*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "K", Suit: "♠"},
+		}, []*deck.Card{
+			{Value: "1", Suit: "♠"}, // Invalid value
+			{Value: "Q", Suit: "♠"},
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+		})
+		assert.Nil(t, cards)
+		assert.Equal(t, InvalidHand, rank.Rank)
+	})
+
+	t.Run("Invalid card suit", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand([]*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "K", Suit: "♠"},
+		}, []*deck.Card{
+			{Value: "Q", Suit: "X"}, // Invalid suit
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+		})
+		assert.Nil(t, cards)
+		assert.Equal(t, InvalidHand, rank.Rank)
+	})
 }
