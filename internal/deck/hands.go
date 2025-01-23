@@ -110,3 +110,13 @@ func (h *Hand) Count() int {
 func (h *Hand) Clear() {
 	h.Cards = []*Card{}
 }
+
+// IndexOf returns the index of a card in the hand
+func (h *Hand) IndexOf(card *Card) int {
+	for i, c := range h.Cards {
+		if c == card {
+			return i
+		}
+	}
+	return -1
+}

@@ -2,6 +2,10 @@
 
 A Go implementation of poker with core game mechanics.
 
+## Purpose
+
+Author of this lib try to leverage this tool to practise his skill to memory and understand the various poker game, Texas Hold'em is just one of them.
+
 ## Features
 
 - Deck management and shuffling
