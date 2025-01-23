@@ -28,10 +28,14 @@ type Team struct {
 }
 
 // NewGame creates a new Guandan game
-func NewGame(lastRanking [4]int) *Game {
+func NewGame(lastRanking [4]int, teamLevels [2]string) *Game {
 	// Validate lastRanking
 	if len(lastRanking) != 4 {
 		panic("lastRanking must have exactly 4 elements")
+	}
+	// Validate teamLevels
+	if len(teamLevels) != 2 {
+		panic("teamLevels must have exactly 2 elements")
 	}
 
 	// Create two decks with jokers
@@ -40,8 +44,8 @@ func NewGame(lastRanking [4]int) *Game {
 	d.Shuffle()
 
 	// Initialize teams and players
-	teamA := &Team{level: "2"}
-	teamB := &Team{level: "2"}
+	teamA := &Team{level: teamLevels[0]}
+	teamB := &Team{level: teamLevels[1]}
 
 	players := [4]*Player{
 		{seat: 1, team: teamA},
