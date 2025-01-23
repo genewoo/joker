@@ -11,6 +11,7 @@ type Game struct {
 	currentLevel string
 	dealer       int
 	deck         *deck.Deck
+	lastRanking  [4]int
 }
 
 // Player represents a game player
@@ -27,7 +28,12 @@ type Team struct {
 }
 
 // NewGame creates a new Guandan game
-func NewGame() *Game {
+func NewGame(lastRanking [4]int) *Game {
+	// Validate lastRanking
+	if len(lastRanking) != 4 {
+		panic("lastRanking must have exactly 4 elements")
+	}
+
 	// Create two decks with jokers
 	d := deck.NewDeckWithJokers()
 	d = d.Times(2)
@@ -52,17 +58,18 @@ func NewGame() *Game {
 		teams:        [2]*Team{teamA, teamB},
 		currentLevel: "2",
 		deck:         d,
+		lastRanking:  lastRanking,
 	}
 }
 
 // DealCards deals cards to players based on last game's ranking
-func (g *Game) DealCards(lastRanking [4]int) {
+func (g *Game) DealCards() {
 	// Set dealer as last game's first player
-	g.dealer = lastRanking[0]
+	g.dealer = g.lastRanking[0]
 
 	// Deal cards in reverse order of last game's ranking
-	for i := len(lastRanking) - 1; i >= 0; i-- {
-		player := g.players[lastRanking[i]-1]
+	for i := len(g.lastRanking) - 1; i >= 0; i-- {
+		player := g.players[g.lastRanking[i]-1]
 		player.hand = deck.NewHand()
 
 		// Deal 27 cards to each player
@@ -75,22 +82,22 @@ func (g *Game) DealCards(lastRanking [4]int) {
 }
 
 // SwapCards implements the special card swapping rules
-func (g *Game) SwapCards(lastRanking [4]int) {
-	lastTwoSameTeam := g.players[lastRanking[2]-1].team == g.players[lastRanking[3]-1].team
+func (g *Game) SwapCards() {
+	lastTwoSameTeam := g.players[g.lastRanking[2]-1].team == g.players[g.lastRanking[3]-1].team
 
 	// Convert single player swap to slice format
-	givers := []*Player{g.players[lastRanking[3]-1]}
-	receivers := []*Player{g.players[lastRanking[0]-1]}
+	givers := []*Player{g.players[g.lastRanking[3]-1]}
+	receivers := []*Player{g.players[g.lastRanking[0]-1]}
 
 	if lastTwoSameTeam {
 		// Last two players are from same team
 		givers = []*Player{
-			g.players[lastRanking[2]-1],
-			g.players[lastRanking[3]-1],
+			g.players[g.lastRanking[2]-1],
+			g.players[g.lastRanking[3]-1],
 		}
 		receivers = []*Player{
-			g.players[lastRanking[0]-1],
-			g.players[lastRanking[1]-1],
+			g.players[g.lastRanking[0]-1],
+			g.players[g.lastRanking[1]-1],
 		}
 	}
 
