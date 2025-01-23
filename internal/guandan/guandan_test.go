@@ -19,6 +19,104 @@ func (suite *GuandanTestSuite) SetupTest() {
 	suite.lastRanking = [4]int{1, 2, 3, 4}
 	suite.teamLevels = [2]string{"2", "3"}
 
+	// Initialize empty hands
+	suite.hands = [4]*deck.Hand{
+		deck.NewHand(),
+		deck.NewHand(),
+		deck.NewHand(),
+		deck.NewHand(),
+	}
+}
+
+// Helper to create a hand with specific cards
+func (suite *GuandanTestSuite) createHand(cards [][]string) *deck.Hand {
+	h := deck.NewHand()
+	for _, card := range cards {
+		h.AddCard(&deck.Card{Value: card[0], Suit: string(card[1])})
+	}
+	return h
+}
+
+func (suite *GuandanTestSuite) TestSwapCardsRedJokerRule() {
+	tests := []struct {
+		name           string
+		lastRanking    [4]int
+		giverHands     [][][]string
+		expectedResult bool
+	}{
+		{
+			name:        "Single giver with 1 red joker",
+			lastRanking: [4]int{1, 2, 3, 4},
+			giverHands: [][][]string{
+				{[]string{"2", "♠"}, []string{"3", "♠"}},
+				{},
+				{},
+				{[]string{"Joker", "Red"}, []string{"4", "♠"}, []string{"2", "♠"}, []string{"3", "♠"}},
+			},
+			expectedResult: true,
+		},
+		{
+			name:        "Single giver with 2 red jokers",
+			lastRanking: [4]int{1, 2, 3, 4},
+			giverHands: [][][]string{
+				{[]string{"2", "♠"}, []string{"3", "♠"}},
+				{},
+				{},
+				{[]string{"Joker", "Red"}, []string{"Joker", "Red"}, []string{"2", "♠"}, []string{"3", "♠"}},
+			},
+			expectedResult: false,
+		},
+		{
+			name:        "Two givers with total 2 red jokers",
+			lastRanking: [4]int{1, 3, 2, 4},
+			giverHands: [][][]string{
+				{[]string{"2", "♠"}, []string{"5", "♠"}},
+				{[]string{"4", "♠"}},
+				{[]string{"Joker", "Red"}, []string{"3", "♠"}},
+				{[]string{"Joker", "Red"}, []string{"2", "♠"}, []string{"3", "♠"}},
+			},
+			expectedResult: false,
+		},
+		{
+			name:        "Two givers with total 1 black and 1 red jokers",
+			lastRanking: [4]int{1, 3, 2, 4},
+			giverHands: [][][]string{
+				{[]string{"2", "♠"}, []string{"5", "♠"}},
+				{[]string{"4", "♠"}},
+				{[]string{"Joker", "BW"}, []string{"3", "♠"}},
+				{[]string{"Joker", "Red"}, []string{"2", "♠"}, []string{"3", "♠"}},
+			},
+			expectedResult: true,
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			// Reset hands
+			suite.SetupTest()
+
+			// Assign hands based on last ranking
+			// Last ranking is [1,2,3,4], so:
+			// - Player 1 is lastRanking[0]
+			// - Player 2 is lastRanking[1]
+			// - Player 3 is lastRanking[2]
+			// - Player 4 is lastRanking[3]
+
+			// Givers are always the last players in ranking
+			for i, giverHand := range tt.giverHands {
+				// Assign to last players (3 and 4)
+				playerIndex := len(suite.lastRanking) - len(tt.giverHands) + i
+				suite.hands[suite.lastRanking[playerIndex]-1] = suite.createHand(giverHand)
+			}
+
+			game := newGameWithHands(tt.lastRanking, suite.teamLevels, suite.hands)
+
+			// Test swapCards
+			result := game.SwapCards()
+			suite.Equal(tt.expectedResult, result)
+		})
+	}
+
 	// Create test hands
 	for i := 0; i < 4; i++ {
 		suite.hands[i] = deck.NewHand()
