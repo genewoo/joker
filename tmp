@@ -1,0 +1,3 @@
+tmp
+
+- Mock external Dependencies by Using mock.mock，except the package from same root package

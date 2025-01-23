@@ -45,9 +45,34 @@ func NewGame(lastRanking [4]int, teamLevels [2]string) *Game {
 	if len(lastRanking) != 4 {
 		panic("lastRanking must have exactly 4 elements")
 	}
+
+	// Validate lastRanking values are unique and between 1-4
+	seen := make(map[int]bool)
+	for _, rank := range lastRanking {
+		if rank < 1 || rank > 4 {
+			panic("lastRanking values must be between 1 and 4")
+		}
+		if seen[rank] {
+			panic("lastRanking values must be unique")
+		}
+		seen[rank] = true
+	}
+
 	// Validate teamLevels
 	if len(teamLevels) != 2 {
 		panic("teamLevels must have exactly 2 elements")
+	}
+
+	// Validate team levels are valid card values
+	validLevels := map[string]bool{
+		"2": true, "3": true, "4": true, "5": true,
+		"6": true, "7": true, "8": true, "9": true,
+		"10": true, "J": true, "Q": true, "K": true, "A": true,
+	}
+	for _, level := range teamLevels {
+		if !validLevels[level] {
+			panic("teamLevels must be valid card values (2-A)")
+		}
 	}
 
 	// Initialize teams and players
@@ -152,23 +177,14 @@ func (g *Game) findSwapCard(player *Player) *deck.Card {
 			return card
 		}
 	}
-	return nil
+	return player.hand.Cards[0]
 }
 
 // findReturnCard finds a card to return that's not bigger than 10
 func (g *Game) findReturnCard(player *Player) *deck.Card {
 	player.hand.Sort()
-
-	for i := len(player.hand.Cards) - 1; i >= 0; i-- {
-		card := player.hand.Cards[i]
-		if card.Value == "Joker" || card.Value == "A" ||
-			card.Value == "K" || card.Value == "Q" ||
-			card.Value == "J" || card.Value == "10" {
-			continue
-		}
-		return card
-	}
-	return nil
+	// return the lowest card to give away (not properly implemented yet)
+	return player.hand.Cards[player.hand.Count()-1]
 }
 
 // UpdateLevel updates the game level based on winning team

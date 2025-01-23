@@ -64,10 +64,10 @@ type Hand struct {
 	organizer Organizer
 }
 
-// NewHand creates a new empty hand with default organizer
-func NewHand() *Hand {
+// NewHand creates a new hand with default organizer and optional initial cards
+func NewHand(cards ...*Card) *Hand {
 	return &Hand{
-		Cards:     []*Card{},
+		Cards:     cards,
 		organizer: &DefaultOrganizer{},
 	}
 }
