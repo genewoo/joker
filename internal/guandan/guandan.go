@@ -27,6 +27,18 @@ type Team struct {
 	level   string
 }
 
+// newGameWithHands creates a new Guandan game with pre-defined hands for testing
+func newGameWithHands(lastRanking [4]int, teamLevels [2]string, hands [4]*deck.Hand) *Game {
+	game := NewGame(lastRanking, teamLevels)
+
+	// Assign hands to players based on lastRanking
+	for i, player := range game.players {
+		player.hand = hands[lastRanking[i]-1]
+	}
+
+	return game
+}
+
 // NewGame creates a new Guandan game
 func NewGame(lastRanking [4]int, teamLevels [2]string) *Game {
 	// Validate lastRanking
