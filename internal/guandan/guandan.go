@@ -38,11 +38,6 @@ func NewGame(lastRanking [4]int, teamLevels [2]string) *Game {
 		panic("teamLevels must have exactly 2 elements")
 	}
 
-	// Create two decks with jokers
-	d := deck.NewDeckWithJokers()
-	d = d.Times(2)
-	d.Shuffle()
-
 	// Initialize teams and players
 	teamA := &Team{level: teamLevels[0]}
 	teamB := &Team{level: teamLevels[1]}
@@ -57,17 +52,26 @@ func NewGame(lastRanking [4]int, teamLevels [2]string) *Game {
 	teamA.players = [2]*Player{players[0], players[2]}
 	teamB.players = [2]*Player{players[1], players[3]}
 
+	// Determine initial currentLevel based on last game's winner team
+	winnerTeam := players[lastRanking[0]-1].team
+
 	return &Game{
 		players:      players,
 		teams:        [2]*Team{teamA, teamB},
-		currentLevel: "2",
-		deck:         d,
+		currentLevel: winnerTeam.level,
+		deck:         nil,
 		lastRanking:  lastRanking,
 	}
 }
 
 // DealCards deals cards to players based on last game's ranking
 func (g *Game) DealCards() {
+	// Initialize deck
+	d := deck.NewDeckWithJokers()
+	d = d.Times(2)
+	d.Shuffle()
+	g.deck = d
+
 	// Set dealer as last game's first player
 	g.dealer = g.lastRanking[0]
 
@@ -160,13 +164,14 @@ func (g *Game) UpdateLevel(winningTeam *Team) {
 	g.currentLevel = winningTeam.level
 }
 
-// NextLevel advances the level for the winning team
+// NextLevel advances the level for the winning team and updates the game's current level
 func (g *Game) NextLevel(winningTeam *Team) {
 	levels := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
 
 	for i, level := range levels {
 		if level == winningTeam.level && i < len(levels)-1 {
 			winningTeam.level = levels[i+1]
+			g.currentLevel = winningTeam.level
 			break
 		}
 	}
