@@ -127,7 +127,8 @@ func (g *Game) DealCards() {
 }
 
 // SwapCards implements the special card swapping rules
-func (g *Game) SwapCards() {
+// Returns false if both givers have red joker (no swap occurs), true otherwise (swap proceeds)
+func (g *Game) SwapCards() bool {
 	lastTwoSameTeam := g.players[g.lastRanking[2]-1].team == g.players[g.lastRanking[3]-1].team
 
 	// Convert single player swap to slice format
@@ -135,7 +136,7 @@ func (g *Game) SwapCards() {
 	receivers := []*Player{g.players[g.lastRanking[0]-1]}
 
 	if lastTwoSameTeam {
-		// Last two players are from same team
+		// Last two players are from same team - both will give cards
 		givers = []*Player{
 			g.players[g.lastRanking[2]-1],
 			g.players[g.lastRanking[3]-1],
@@ -146,7 +147,29 @@ func (g *Game) SwapCards() {
 		}
 	}
 
+	// Special rule: Check red joker conditions to prevent swap
+	shouldPreventSwap := false
+
+	// Count total red jokers across all givers
+	totalRedJokers := 0
+	for _, giver := range givers {
+		for _, card := range giver.hand.Cards {
+			if card.Value == "Joker" && card.Suit == "Red" {
+				totalRedJokers++
+			}
+		}
+	}
+
+	// Prevent swap if total red jokers == 2 (applies to both single and multiple givers)
+	shouldPreventSwap = (totalRedJokers == 2)
+
+	// If conditions met, return false to prevent swap
+	if shouldPreventSwap {
+		return false
+	}
+	// Proceed with normal swap if rule conditions not met
 	g.swapCards(givers, receivers)
+	return true
 }
 
 // swapCards handles card swapping between givers and receivers
