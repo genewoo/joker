@@ -1,0 +1,12 @@
+Combination of Cards, name, description, example
+
+- Singles,Single cards,9♠
+- Pairs,Two cards of matching rank,5♦ 5♣
+- Triples,Three cards of matching rank,6♠ 6♥ 6♦
+- Plate,2 consecutive triples,3♥ 3♠ 3♣ 4♣ 4♦ 4♥
+- Tube,3 consecutive pairs,2♠ 2♥ 3♠ 3♣ 4♣ 4♦
+- Full House,A triple plus a pair,9♠ 9♥ 9♦ J♥ J♣
+- Straight,5 consecutive cards,8♥ 9♠ 10♣ J♥ Q♦
+- Bomb,4+ cards of matching rank,4♠ 4♥ 4♣ 4♣
+- Straight Flush,5 consecutive cards of the same suit,10♠ J♠ Q♠ K♠ A♠
+- Joker Bomb,4 jokers, All four Joker cards
