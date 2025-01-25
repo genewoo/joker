@@ -336,3 +336,28 @@ func (hr HandRank) String() string {
 		"Royal Flush",
 	}[hr]
 }
+
+// Compare compares two HandStrength values
+// Returns -1 if h is weaker than other, 0 if equal, 1 if h is stronger
+func (h HandStrength) Compare(other HandStrength) int {
+	// First compare ranks
+	if h.Rank < other.Rank {
+		return -1
+	}
+	if h.Rank > other.Rank {
+		return 1
+	}
+
+	// If ranks are equal, compare values element by element
+	for i := 0; i < len(h.Values) && i < len(other.Values); i++ {
+		if h.Values[i] < other.Values[i] {
+			return -1
+		}
+		if h.Values[i] > other.Values[i] {
+			return 1
+		}
+	}
+
+	// Hands are equal
+	return 0
+}

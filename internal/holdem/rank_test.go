@@ -376,3 +376,93 @@ func TestRankHand(t *testing.T) {
 		assert.Equal(t, InvalidHand, rank.Rank)
 	})
 }
+
+func TestHandStrengthCompare(t *testing.T) {
+	tests := []struct {
+		name     string
+		h1       HandStrength
+		h2       HandStrength
+		expected int
+	}{
+		{
+			name: "Different ranks - h1 stronger",
+			h1: HandStrength{
+				Rank:   FullHouse,
+				Values: []int{10, 10},
+			},
+			h2: HandStrength{
+				Rank:   Flush,
+				Values: []int{14, 13, 12, 11, 9},
+			},
+			expected: 1,
+		},
+		{
+			name: "Different ranks - h2 stronger",
+			h1: HandStrength{
+				Rank:   OnePair,
+				Values: []int{14, 13, 12, 11},
+			},
+			h2: HandStrength{
+				Rank:   TwoPair,
+				Values: []int{13, 12, 14},
+			},
+			expected: -1,
+		},
+		{
+			name: "Same rank - h1 stronger values",
+			h1: HandStrength{
+				Rank:   Flush,
+				Values: []int{14, 13, 12, 11, 9},
+			},
+			h2: HandStrength{
+				Rank:   Flush,
+				Values: []int{13, 12, 11, 10, 9},
+			},
+			expected: 1,
+		},
+		{
+			name: "Same rank - h2 stronger values",
+			h1: HandStrength{
+				Rank:   TwoPair,
+				Values: []int{13, 12, 10},
+			},
+			h2: HandStrength{
+				Rank:   TwoPair,
+				Values: []int{14, 13, 12},
+			},
+			expected: -1,
+		},
+		{
+			name: "Same rank and values",
+			h1: HandStrength{
+				Rank:   HighCard,
+				Values: []int{14, 13, 12, 11, 9},
+			},
+			h2: HandStrength{
+				Rank:   HighCard,
+				Values: []int{14, 13, 12, 11, 9},
+			},
+			expected: 0,
+		},
+		{
+			name: "Same rank - High Rank",
+			h1: HandStrength{
+				Rank:   FullHouse,
+				Values: []int{14, 12},
+			},
+			h2: HandStrength{
+				Rank:   FullHouse,
+				Values: []int{14, 13},
+			},
+			expected: -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := tt.h1.Compare(tt.h2)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
