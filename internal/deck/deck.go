@@ -100,3 +100,65 @@ func (d *Deck) Times(count int) *Deck {
 	}
 	return &Deck{Cards: cards}
 }
+
+// ComboCount calculates the number of possible combinations when drawing a specified number of cards
+// drawCount: number of cards to draw (must be positive and not exceed deck size)
+// Returns the number of possible combinations as an integer
+func (d *Deck) ComboCount(drawCount int) int {
+	n := len(d.Cards)
+	if drawCount <= 0 || drawCount > n {
+		return 0
+	}
+
+	// Use the multiplicative formula to avoid large factorial calculations
+	result := 1
+	for i := 1; i <= drawCount; i++ {
+		result = result * (n - drawCount + i) / i
+	}
+	return result
+}
+
+// DrawWithLimitHands generates randomized hands of cards
+// drawCount: number of cards per hand (must be positive and not exceed deck size)
+// limit: maximum number of hands to generate (must be positive)
+// Returns a slice of *Hand
+func (d *Deck) DrawWithLimitHands(drawCount, limit int) []*Hand {
+	if drawCount <= 0 || limit <= 0 || drawCount > len(d.Cards) {
+		return nil
+	}
+
+	// Calculate maximum possible combinations
+	maxCombinations := d.ComboCount(drawCount)
+	if limit > maxCombinations {
+		limit = maxCombinations
+	}
+
+	// Shuffle the deck if needed
+	if len(d.Cards) > 1 {
+		d.Shuffle()
+	}
+
+	var hands []*Hand
+	totalCards := drawCount * limit
+
+	// If we need more cards than available, adjust limit
+	if totalCards > len(d.Cards) {
+		limit = len(d.Cards) / drawCount
+		if limit == 0 {
+			return nil
+		}
+	}
+
+	for i := 0; i < limit; i++ {
+		start := i * drawCount
+		end := start + drawCount
+		if end > len(d.Cards) {
+			break
+		}
+		cards := make([]*Card, drawCount)
+		copy(cards, d.Cards[start:end])
+		hands = append(hands, NewHand(cards...))
+	}
+
+	return hands
+}

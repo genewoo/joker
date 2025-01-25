@@ -196,3 +196,179 @@ func (s *DeckTestSuite) TestTimesAndShuffle() {
 	assert.True(s.T(), firstHalfShuffled || secondHalfShuffled,
 		"Shuffle should mix both halves of the double deck")
 }
+
+func (s *DeckTestSuite) TestComboCount() {
+	tests := []struct {
+		name      string
+		deck      *Deck
+		drawCount int
+		expected  int
+	}{
+		{
+			name:      "Standard deck draw 5",
+			deck:      NewDeck(),
+			drawCount: 5,
+			expected:  2598960, // C(52,5)
+		},
+		{
+			name:      "Standard deck draw 7",
+			deck:      NewDeck(),
+			drawCount: 7,
+			expected:  133784560, // C(52,7)
+		},
+		{
+			name:      "Deck with jokers draw 5",
+			deck:      NewDeckWithJokers(),
+			drawCount: 5,
+			expected:  3162510, // C(54,5)
+		},
+		{
+			name:      "Draw all cards",
+			deck:      NewDeck(),
+			drawCount: 52,
+			expected:  1, // C(52,52)
+		},
+		{
+			name:      "Draw 1 card",
+			deck:      NewDeck(),
+			drawCount: 1,
+			expected:  52, // C(52,1)
+		},
+		{
+			name:      "Draw more than deck size",
+			deck:      NewDeck(),
+			drawCount: 53,
+			expected:  0,
+		},
+		{
+			name:      "Draw zero cards",
+			deck:      NewDeck(),
+			drawCount: 0,
+			expected:  0,
+		},
+		{
+			name:      "Negative draw count",
+			deck:      NewDeck(),
+			drawCount: -1,
+			expected:  0,
+		},
+		{
+			name:      "Empty deck",
+			deck:      &Deck{Cards: []*Card{}},
+			drawCount: 5,
+			expected:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			result := tt.deck.ComboCount(tt.drawCount)
+			assert.Equal(s.T(), tt.expected, result)
+		})
+	}
+}
+
+func (s *DeckTestSuite) TestDrawWithLimitHands() {
+	deck := NewDeck()
+
+	tests := []struct {
+		name      string
+		deck      *Deck
+		drawCount int
+		limit     int
+		expected  int // expected number of hands
+		handSize  int // expected cards per hand
+	}{
+		{
+			name:      "Standard 5-card hands",
+			deck:      deck,
+			drawCount: 5,
+			limit:     10,
+			expected:  10,
+			handSize:  5,
+		},
+		{
+			name:      "Single hand",
+			deck:      deck,
+			drawCount: 7,
+			limit:     1,
+			expected:  1,
+			handSize:  7,
+		},
+		{
+			name:      "Limit exceeds available cards",
+			deck:      deck,
+			drawCount: 5,
+			limit:     20,
+			expected:  10, // 52/5 = 10 hands
+			handSize:  5,
+		},
+		{
+			name:      "Limit exceeds combo count",
+			deck:      deck,
+			drawCount: 5,
+			limit:     3000000, // More than C(52,5) = 2,598,960
+			expected:  2598960, // Should be capped at ComboCount
+			handSize:  5,
+		},
+		{
+			name:      "Draw all cards as single hand",
+			deck:      deck,
+			drawCount: 52,
+			limit:     1,
+			expected:  1,
+			handSize:  52,
+		},
+		{
+			name:      "Invalid draw count",
+			deck:      deck,
+			drawCount: 0,
+			limit:     5,
+			expected:  0,
+		},
+		{
+			name:      "Invalid limit",
+			deck:      deck,
+			drawCount: 5,
+			limit:     0,
+			expected:  0,
+		},
+		{
+			name:      "Draw count exceeds deck size",
+			deck:      deck,
+			drawCount: 53,
+			limit:     1,
+			expected:  0,
+		},
+		{
+			name:      "Empty deck",
+			deck:      &Deck{Cards: []*Card{}},
+			drawCount: 5,
+			limit:     1,
+			expected:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			hands := tt.deck.DrawWithLimitHands(tt.drawCount, tt.limit)
+			assert.Equal(s.T(), tt.expected, len(hands))
+
+			if tt.expected > 0 {
+				// Verify all hands have correct size
+				for _, hand := range hands {
+					assert.Equal(s.T(), tt.handSize, len(hand.Cards))
+				}
+
+				// Verify all cards are unique across hands
+				seenCards := make(map[*Card]bool)
+				for _, hand := range hands {
+					for _, card := range hand.Cards {
+						assert.False(s.T(), seenCards[card], "Duplicate card found")
+						seenCards[card] = true
+					}
+				}
+			}
+		})
+	}
+}
