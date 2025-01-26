@@ -1,7 +1,6 @@
 package holdem
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -46,18 +45,22 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 
 	for _, communityCards := range communityCardHands {
 		// Evaluate each player's hand
+		// fmt.Println(communityCards)
 		bestHands := make([]HandStrength, len(wc.players))
 		for i, hand := range wc.players {
 			bestHands[i], _ = RankHand(hand, communityCards.Cards)
 		}
 
+		// fmt.Println(bestHands)
 		// Determine winner(s)
 		winners := findWinners(bestHands)
-		fmt.Println(winners)
+		// fmt.Println(winners)
 		if len(winners) == 1 {
 			results[winners[0]] += 1.0
 		} else {
 			// in case of tie or all tie
+
+			/// TODO: comment tie situation for now
 			winnerPercentage := 1 / float64(len(winners))
 			for _, winner := range winners {
 				results[winner] += winnerPercentage

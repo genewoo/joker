@@ -151,7 +151,11 @@ func (d *Deck) DrawWithLimitHands(drawCount, limit int) []*Hand {
 			break // Stop if all combinations are drawn
 		}
 		d.Shuffle()
-		currentHand := NewHand(d.Cards[:drawCount]...)
+		drawnCards := make([]Card, drawCount)
+		for i, cardPtr := range d.Cards[:drawCount] {
+			drawnCards[i] = *cardPtr
+		}
+		currentHand := NewHandByCards(drawnCards...)
 		handKey := currentHand.String()
 		if !drawnHands[handKey] {
 			hands = append(hands, currentHand)

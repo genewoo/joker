@@ -9,6 +9,8 @@ import (
 )
 
 func TestWinningCalculator(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		players     [][]*deck.Card
@@ -18,13 +20,13 @@ func TestWinningCalculator(t *testing.T) {
 	}{
 		//{"♠", "♥", "♦", "♣"}
 		{
-			name: "Two players - clear winner",
+			name: "Two players - 64 vs 36 winner Player 1",
 			players: [][]*deck.Card{
 				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 1
 				{deck.NewCard("2", "♥"), deck.NewCard("3", "♥")}, // Player 2
 			},
-			simulations: 1000,
-			expected:    []float64{0.9, 0.05}, // Player 1 should win most of the time
+			simulations: 10000,
+			expected:    []float64{0.64, 0.36}, // Player 1 should win most of the time
 		},
 		{
 			name: "Two players - Tie",
@@ -32,34 +34,46 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("A", "♠"), deck.NewCard("A", "♦")}, // Player 1
 				{deck.NewCard("A", "♥"), deck.NewCard("A", "♣")}, // Player 2
 			},
-			simulations: 1000,
+			simulations: 10000,
 			expected:    []float64{0.5, 0.5}, // Player 1,2 should be tir most of the time
 		},
-		// {
-		// 	name: "Three players - balanced",
-		// 	players: [][]*deck.Card{
-		// 		{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")},
-		// 		{deck.NewCard("Q", "♠"), deck.NewCard("J", "♠")},
-		// 		{deck.NewCard("T", "♠"), deck.NewCard("9", "♠")},
-		// 	},
-		// 	simulations: 1000,
-		// 	expected:    []float64{0.5, 0.3, 0.2}, // Rough expected distribution
-		// },
-		// {
-		// 	name: "Tie scenario",
-		// 	players: [][]*deck.Card{
-		// 		{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")},
-		// 		{deck.NewCard("A", "♥"), deck.NewCard("K", "♥")},
-		// 	},
-		// 	simulations: 1000,
-		// 	expected:    []float64{0.5, 0.5}, // Equal chance of winning
-		// },
-		// {
-		// 	name:        "No players",
-		// 	players:     [][]*deck.Card{},
-		// 	simulations: 1000,
-		// 	expected:    nil,
-		// },
+		{
+			name: "Two players AKs vs 23o - 36 vs 64 winner Player 2",
+			players: [][]*deck.Card{
+				{deck.NewCard("2", "♥"), deck.NewCard("3", "♦")}, // Player 1
+				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 2
+			},
+			simulations: 10000,
+			expected:    []float64{0.32, 0.68}, // Player 1 should lost most of the time
+		},
+		{
+			name: "Two players AKs vs 23s - 36 vs 64 winner Player 2",
+			players: [][]*deck.Card{
+				{deck.NewCard("2", "♥"), deck.NewCard("3", "♥")}, // Player 1
+				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 2
+			},
+			simulations: 10000,
+			expected:    []float64{0.36, 0.64}, // Player 1 should lost most of the time
+		},
+		{
+			name: "Two players AKs vs Qs - 54 vs 46 winner Player 2",
+			players: [][]*deck.Card{
+				{deck.NewCard("Q", "♥"), deck.NewCard("Q", "♦")}, // Player 1
+				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 2
+			},
+			simulations: 10000,
+			expected:    []float64{0.53, 0.47}, // Player 1 should lost most of the time
+		},
+		{
+			name: "Three players AKs Even",
+			players: [][]*deck.Card{
+				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 1
+				{deck.NewCard("A", "♦"), deck.NewCard("K", "♦")}, // Player 2
+				{deck.NewCard("A", "♥"), deck.NewCard("K", "♥")}, // Player 3
+			},
+			simulations: 10000,
+			expected:    []float64{0.33, 0.33, 0.33}, // Player 1 should lost most of the time
+		},
 	}
 
 	for _, tt := range tests {
@@ -72,7 +86,7 @@ func TestWinningCalculator(t *testing.T) {
 
 			assert.Equal(t, len(tt.expected), len(probs))
 			for i := range tt.expected {
-				assert.InDelta(t, tt.expected[i], probs[i], 0.1)
+				assert.InDelta(t, tt.expected[i], probs[i], 0.015)
 			}
 		})
 	}

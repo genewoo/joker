@@ -378,7 +378,7 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 					} else {
 						fmt.Printf("Hand Duplicated: %s\n", key)
 					}
-					// assert.False(s.T(), seenCards[hand.String()], hand.String())
+					assert.False(s.T(), seenCards[hand.String()], hand.String())
 					seenCards[hand.String()] = true
 
 				}

@@ -73,6 +73,18 @@ func NewHand(cards ...*Card) *Hand {
 	}
 }
 
+// NewHandByCards creates a new hand with default organizer and initial cards
+func NewHandByCards(cards ...Card) *Hand {
+	cardsPointers := make([]*Card, len(cards))
+	for i := range cards {
+		cardsPointers[i] = &cards[i]
+	}
+	return &Hand{
+		Cards:     cardsPointers,
+		organizer: &DefaultOrganizer{},
+	}
+}
+
 // SetOrganizer sets a custom organizer for the hand
 func (h *Hand) SetOrganizer(organizer Organizer) {
 	h.organizer = organizer
