@@ -262,3 +262,47 @@ func (s *HandsTestSuite) TestClear() {
 		})
 	}
 }
+
+func (s *HandsTestSuite) TestString() {
+	tests := []struct {
+		name     string
+		hand     *Hand
+		expected string
+	}{
+		{
+			name:     "Empty hand",
+			hand:     NewHand(),
+			expected: "",
+		},
+		{
+			name:     "Single card hand",
+			hand:     NewHand(&Card{Suit: "♠", Value: "A"}),
+			expected: "A♠",
+		},
+		{
+			name: "Multiple cards hand",
+			hand: NewHand(
+				&Card{Suit: "♠", Value: "A"},
+				&Card{Suit: "♦", Value: "Q"},
+				&Card{Suit: "♥", Value: "K"},
+			),
+			expected: "A♠,K♥,Q♦",
+		},
+		{
+			name: "Sorted hand string",
+			hand: NewHand(
+				&Card{Suit: "♥", Value: "5"},
+				&Card{Suit: "♣", Value: "J"},
+				&Card{Suit: "♦", Value: "10"},
+				&Card{Suit: "♠", Value: "A"},
+			),
+			expected: "A♠,J♣,10♦,5♥",
+		},
+	}
+
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			assert.Equal(s.T(), tt.expected, tt.hand.String())
+		})
+	}
+}

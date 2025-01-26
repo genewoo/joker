@@ -2,6 +2,7 @@ package deck
 
 import (
 	"sort"
+	"strings"
 )
 
 // Organizer defines the interface for sorting hands
@@ -119,4 +120,14 @@ func (h *Hand) IndexOf(card *Card) int {
 		}
 	}
 	return -1
+}
+
+// String returns a string representation of the hand, with cards sorted.
+func (h *Hand) String() string {
+	h.Sort() // Sort the hand before stringifying
+	var cardStrings []string
+	for _, card := range h.Cards {
+		cardStrings = append(cardStrings, card.String()) // Assuming Card has a String() method
+	}
+	return strings.Join(cardStrings, ",")
 }

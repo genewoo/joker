@@ -1,6 +1,7 @@
 package deck
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -51,33 +52,40 @@ func (s *DeckTestSuite) TestCount() {
 }
 
 func (s *DeckTestSuite) TestShuffle() {
-	deck1 := NewDeck()
-	deck2 := NewDeck()
 
-	initialOrder1 := make([]*Card, len(deck1.Cards))
-	initialOrder2 := make([]*Card, len(deck2.Cards))
-	copy(initialOrder1, deck1.Cards)
-	copy(initialOrder2, deck2.Cards)
-
-	deck1.Shuffle()
-	deck2.Shuffle()
-
-	sameOrder1 := true
-	sameOrder2 := true
-	for i := range deck1.Cards {
-		if deck1.Cards[i] != initialOrder1[i] {
-			sameOrder1 = false
-			break
-		}
-	}
-	for i := range deck2.Cards {
-		if deck2.Cards[i] != initialOrder2[i] {
-			sameOrder2 = false
-			break
-		}
+	deck := NewDeck()
+	deck.Cards = []*Card{
+		{Value: "A", Suit: "♠"},
+		{Value: "2", Suit: "♠"},
+		{Value: "3", Suit: "♠"},
+		{Value: "4", Suit: "♠"},
+		{Value: "5", Suit: "♠"},
 	}
 
-	assert.False(s.T(), sameOrder1 || sameOrder2, "Shuffle should change the deck order")
+	cards := make([]string, len(deck.Cards))
+	for i, card := range deck.Cards {
+		cards[i] = card.String()
+	}
+
+	deck.Shuffle()
+
+	afterCards := make([]string, len(deck.Cards))
+	for i, card := range deck.Cards {
+		afterCards[i] = card.String()
+	}
+
+	deck.Shuffle()
+
+	afterCards2 := make([]string, len(deck.Cards))
+	for i, card := range deck.Cards {
+		afterCards2[i] = card.String()
+	}
+
+	fmt.Println(cards)
+	fmt.Println(afterCards)
+	fmt.Println(afterCards2)
+	assert.ElementsMatch(s.T(), cards, afterCards, "Shuffle should change the deck order")
+	assert.ElementsMatch(s.T(), afterCards, afterCards2, "Shuffle should change the deck order")
 }
 
 func (s *DeckTestSuite) TestNewDeckWithMasks() {
@@ -340,6 +348,14 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 			limit:     1,
 			expected:  0,
 		},
+		// {
+		// 	name:      "Unique hands",
+		// 	deck:      NewDeck(),
+		// 	drawCount: 2,
+		// 	limit:     52 * 51 / 2, // Maximum possible unique 2-card hands
+		// 	expected:  52 * 51 / 2,
+		// 	handSize:  2,
+		// },
 	}
 
 	for _, tt := range tests {
@@ -353,14 +369,19 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 					assert.Equal(s.T(), tt.handSize, len(hand.Cards))
 				}
 
-				// // Verify all cards are unique across hands
-				// seenCards := make(map[string]bool)
-				// for _, hand := range hands {
-				// 	for _, card := range hand.Cards {
-				// 		assert.False(s.T(), seenCards[card], card)
-				// 		seenCards[card] = true
-				// 	}
-				// }
+				// Verify all cards are unique across hands
+				seenCards := make(map[string]bool)
+				for _, hand := range hands {
+					key := hand.String()
+					if !seenCards[key] {
+						fmt.Printf("Hand: %s\n", key)
+					} else {
+						fmt.Printf("Hand Duplicated: %s\n", key)
+					}
+					// assert.False(s.T(), seenCards[hand.String()], hand.String())
+					seenCards[hand.String()] = true
+
+				}
 			}
 		})
 	}

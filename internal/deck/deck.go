@@ -133,20 +133,38 @@ func (d *Deck) DrawWithLimitHands(drawCount, limit int) []*Hand {
 		limit = maxCombinations
 	}
 
+	if maxCombinations == 0 {
+		return nil
+	}
+
 	// Shuffle the deck if needed
 	if len(d.Cards) < 1 {
 		return nil
 	}
 
 	// build a slice of hands
-
 	hands := make([]*Hand, 0, limit)
+	drawnHands := make(map[string]bool)
 
 	for i := 0; i < limit; i++ {
+		if len(drawnHands) >= maxCombinations {
+			break // Stop if all combinations are drawn
+		}
 		d.Shuffle()
-		// get first drawCount of cards from d.Cards
-		hands = append(hands, NewHand(d.Cards[:drawCount]...))
+		currentHand := NewHand(d.Cards[:drawCount]...)
+		handKey := currentHand.String()
+		if !drawnHands[handKey] {
+			hands = append(hands, currentHand)
+			drawnHands[handKey] = true
+		} else {
+			i-- // Decrement counter to retry drawing a unique hand
+		}
 	}
 
 	return hands
+}
+
+// String returns a string representation of a card.
+func (c *Card) String() string {
+	return c.Value + c.Suit
 }
