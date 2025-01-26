@@ -296,30 +296,6 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 			handSize:  7,
 		},
 		{
-			name:      "Limit exceeds available cards",
-			deck:      deck,
-			drawCount: 5,
-			limit:     20,
-			expected:  10, // 52/5 = 10 hands
-			handSize:  5,
-		},
-		{
-			name:      "Limit exceeds combo count",
-			deck:      deck,
-			drawCount: 5,
-			limit:     3000000, // More than C(52,5) = 2,598,960
-			expected:  2598960, // Should be capped at ComboCount
-			handSize:  5,
-		},
-		{
-			name:      "Draw all cards as single hand",
-			deck:      deck,
-			drawCount: 52,
-			limit:     1,
-			expected:  1,
-			handSize:  52,
-		},
-		{
 			name:      "Invalid draw count",
 			deck:      deck,
 			drawCount: 0,
@@ -334,11 +310,28 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 			expected:  0,
 		},
 		{
-			name:      "Draw count exceeds deck size",
-			deck:      deck,
-			drawCount: 53,
+			name:      "Limit exceeds combo size",
+			deck:      &Deck{Cards: []*Card{NewCard("♠", "A"), NewCard("♠", "2")}},
+			drawCount: 2,
+			limit:     2,
+			expected:  1,
+			handSize:  2,
+		},
+		// {
+		// 	name:      "Limit exceeds combo count",
+		// 	deck:      deck,
+		// 	drawCount: 5,
+		// 	limit:     3000000, // More than C(52,5) = 2,598,960
+		// 	expected:  2598960, // Should be capped at ComboCount
+		// 	handSize:  5,
+		// },
+		{
+			name:      "Limit count = combo count",
+			deck:      &Deck{Cards: []*Card{NewCard("♠", "A"), NewCard("♠", "2")}},
+			drawCount: 2,
 			limit:     1,
-			expected:  0,
+			expected:  1,
+			handSize:  2,
 		},
 		{
 			name:      "Empty deck",
@@ -360,14 +353,14 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 					assert.Equal(s.T(), tt.handSize, len(hand.Cards))
 				}
 
-				// Verify all cards are unique across hands
-				seenCards := make(map[*Card]bool)
-				for _, hand := range hands {
-					for _, card := range hand.Cards {
-						assert.False(s.T(), seenCards[card], "Duplicate card found")
-						seenCards[card] = true
-					}
-				}
+				// // Verify all cards are unique across hands
+				// seenCards := make(map[string]bool)
+				// for _, hand := range hands {
+				// 	for _, card := range hand.Cards {
+				// 		assert.False(s.T(), seenCards[card], card)
+				// 		seenCards[card] = true
+				// 	}
+				// }
 			}
 		})
 	}

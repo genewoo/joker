@@ -134,30 +134,18 @@ func (d *Deck) DrawWithLimitHands(drawCount, limit int) []*Hand {
 	}
 
 	// Shuffle the deck if needed
-	if len(d.Cards) > 1 {
-		d.Shuffle()
+	if len(d.Cards) < 1 {
+		return nil
 	}
 
-	var hands []*Hand
-	totalCards := drawCount * limit
+	// build a slice of hands
 
-	// If we need more cards than available, adjust limit
-	if totalCards > len(d.Cards) {
-		limit = len(d.Cards) / drawCount
-		if limit == 0 {
-			return nil
-		}
-	}
+	hands := make([]*Hand, 0, limit)
 
 	for i := 0; i < limit; i++ {
-		start := i * drawCount
-		end := start + drawCount
-		if end > len(d.Cards) {
-			break
-		}
-		cards := make([]*Card, drawCount)
-		copy(cards, d.Cards[start:end])
-		hands = append(hands, NewHand(cards...))
+		d.Shuffle()
+		// get first drawCount of cards from d.Cards
+		hands = append(hands, NewHand(d.Cards[:drawCount]...))
 	}
 
 	return hands

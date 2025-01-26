@@ -24,21 +24,30 @@ func RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStreng
 	return evaluateAllCombinations(allCards)
 }
 
-// compareHands returns true if hand1 is stronger than hand2
-func compareHands(hand1, hand2 HandStrength) bool {
-	if hand1.Rank != hand2.Rank {
-		return hand1.Rank > hand2.Rank
+// compareHands returns 1 if hand1 is stronger than hand2
+// return -1 if hand2 is stronger than hand1
+// returns 0 if equal
+func compareHands(hand1, hand2 HandStrength) int {
+	// First compare ranks
+	if hand1.Rank < hand2.Rank {
+		return -1
+	}
+	if hand1.Rank > hand2.Rank {
+		return 1
 	}
 
-	// Compare values element by element
+	// If ranks are equal, compare values element by element
 	for i := 0; i < len(hand1.Values) && i < len(hand2.Values); i++ {
-		if hand1.Values[i] != hand2.Values[i] {
-			return hand1.Values[i] > hand2.Values[i]
+		if hand1.Values[i] < hand2.Values[i] {
+			return -1
+		}
+		if hand1.Values[i] > hand2.Values[i] {
+			return 1
 		}
 	}
 
-	// If we get here, the hands are equal
-	return false
+	// Hands are equal
+	return 0
 }
 
 // evaluateAllCombinations generates all possible 5-card combinations from the given cards
@@ -62,7 +71,7 @@ func evaluateAllCombinations(cards []*deck.Card) (HandStrength, []*deck.Card) {
 							cards[fifth],
 						}
 						currentStrength := evaluateHand(currentHand)
-						if bestHand == nil || compareHands(currentStrength, bestStrength) {
+						if bestHand == nil || compareHands(currentStrength, bestStrength) == 1 {
 							bestStrength = currentStrength
 							bestHand = currentHand
 						}
