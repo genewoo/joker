@@ -13,6 +13,8 @@ type Organizer interface {
 // DefaultOrganizer sorts cards by value and suit, with jokers at the end
 type DefaultOrganizer struct{}
 
+var defaultOrganizer = &DefaultOrganizer{}
+
 var valueOrder = map[string]int{
 	"A":  14,
 	"K":  13,
@@ -69,7 +71,7 @@ type Hand struct {
 func NewHand(cards ...*Card) *Hand {
 	return &Hand{
 		Cards:     cards,
-		organizer: &DefaultOrganizer{},
+		organizer: defaultOrganizer,
 	}
 }
 
@@ -81,7 +83,7 @@ func NewHandByCards(cards ...Card) *Hand {
 	}
 	return &Hand{
 		Cards:     cardsPointers,
-		organizer: &DefaultOrganizer{},
+		organizer: defaultOrganizer,
 	}
 }
 
