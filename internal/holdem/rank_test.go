@@ -1,6 +1,7 @@
 package holdem
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/genewoo/joker/internal/deck"
@@ -374,6 +375,38 @@ func TestRankHand(t *testing.T) {
 		})
 		assert.Nil(t, cards)
 		assert.Equal(t, InvalidHand, rank.Rank)
+	})
+
+	t.Run("Card suit A", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand([]*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "A", Suit: "♦"},
+		}, []*deck.Card{
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+			{Value: "10", Suit: "♦"},
+			{Value: "5", Suit: "♦"},
+			{Value: "2", Suit: "♣"},
+		})
+		fmt.Println(cards)
+		assert.Equal(t, TwoPair, rank.Rank)
+	})
+
+	t.Run("Card suit B", func(t *testing.T) {
+		t.Parallel()
+		rank, cards := RankHand([]*deck.Card{
+			{Value: "A", Suit: "♥"},
+			{Value: "A", Suit: "♣"},
+		}, []*deck.Card{
+			{Value: "J", Suit: "♠"},
+			{Value: "10", Suit: "♠"},
+			{Value: "10", Suit: "♦"},
+			{Value: "5", Suit: "♦"},
+			{Value: "2", Suit: "♣"},
+		})
+		fmt.Println(cards)
+		assert.Equal(t, TwoPair, rank.Rank)
 	})
 }
 

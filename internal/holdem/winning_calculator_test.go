@@ -26,7 +26,7 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("2", "♥"), deck.NewCard("3", "♥")}, // Player 2
 			},
 			simulations: 10000,
-			expected:    []float64{0.64, 0.36}, // Player 1 should win most of the time
+			expected:    []float64{0.64, 0.36, 0.005}, // Player 1 should win most of the time
 		},
 		{
 			name: "Two players - Tie",
@@ -35,7 +35,7 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("A", "♥"), deck.NewCard("A", "♣")}, // Player 2
 			},
 			simulations: 10000,
-			expected:    []float64{0.5, 0.5}, // Player 1,2 should be tir most of the time
+			expected:    []float64{0.02, 0.02, 0.95}, // Player 1,2 should be tir most of the time
 		},
 		{
 			name: "Two players AKs vs 23o - 36 vs 64 winner Player 2",
@@ -44,7 +44,7 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 2
 			},
 			simulations: 10000,
-			expected:    []float64{0.32, 0.68}, // Player 1 should lost most of the time
+			expected:    []float64{0.32, 0.68, 0.006}, // Player 1 should lost most of the time
 		},
 		{
 			name: "Two players AKs vs 23s - 36 vs 64 winner Player 2",
@@ -53,7 +53,7 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 2
 			},
 			simulations: 10000,
-			expected:    []float64{0.36, 0.64}, // Player 1 should lost most of the time
+			expected:    []float64{0.36, 0.64, 0.005}, // Player 1 should lost most of the time
 		},
 		{
 			name: "Two players AKs vs Qs - 54 vs 46 winner Player 2",
@@ -62,7 +62,7 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")}, // Player 2
 			},
 			simulations: 10000,
-			expected:    []float64{0.53, 0.47}, // Player 1 should lost most of the time
+			expected:    []float64{0.536, 0.46, 0.004}, // Player 1 should lost most of the time
 		},
 		{
 			name: "Three players AKs Even",
@@ -72,7 +72,7 @@ func TestWinningCalculator(t *testing.T) {
 				{deck.NewCard("A", "♥"), deck.NewCard("K", "♥")}, // Player 3
 			},
 			simulations: 10000,
-			expected:    []float64{0.33, 0.33, 0.33}, // Player 1 should lost most of the time
+			expected:    []float64{0.08, 0.08, 0.08, 0.76}, // Player 1 should lost most of the time
 		},
 	}
 
@@ -81,7 +81,6 @@ func TestWinningCalculator(t *testing.T) {
 			calc := NewWinningCalculator(tt.players, tt.simulations)
 			probs := calc.CalculateWinProbabilities()
 			fmt.Println(probs)
-
 			assert.NotNil(t, probs)
 
 			assert.Equal(t, len(tt.expected), len(probs))

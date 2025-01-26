@@ -71,7 +71,10 @@ func evaluateAllCombinations(cards []*deck.Card) (HandStrength, []*deck.Card) {
 							cards[fifth],
 						}
 						currentStrength := evaluateHand(currentHand)
+						// fmt.Println("CURRENT STRENGTH:", currentStrength)
+						// fmt.Println("BEST STRENGTH:", bestStrength)
 						if bestHand == nil || compareHands(currentStrength, bestStrength) == 1 {
+
 							bestStrength = currentStrength
 							bestHand = currentHand
 						}
@@ -250,15 +253,16 @@ func evaluateHand(hand []*deck.Card) HandStrength {
 			pairValues = append(pairValues, value)
 		}
 	}
+
 	// Comment out due to personal thought.
 
-	// // sort before pairCount
-	// if pairCount >= 1 {
-	// 	// Sort pairs by value
-	// 	sort.Slice(pairValues, func(i, j int) bool {
-	// 		return valueToRank[pairValues[i]] > valueToRank[pairValues[j]]
-	// 	})
-	// }
+	// sort before pairCount
+	if pairCount >= 1 {
+		// Sort pairs by value
+		sort.Slice(pairValues, func(i, j int) bool {
+			return valueToRank[pairValues[i]] > valueToRank[pairValues[j]]
+		})
+	}
 	if pairCount >= 2 {
 		strength.Rank = TwoPair
 		// find the kicker by filter out the two pair values
