@@ -2,6 +2,8 @@ package holdem
 
 import (
 	"math/rand"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/genewoo/joker/internal/deck"
@@ -29,7 +31,8 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 		return nil
 	}
 
-	// Initialize results
+	// Initialize results with a mutex for concurrent access
+	var mu sync.Mutex
 	results := make([]float64, len(wc.players))
 
 	// Create a new deck with player's cards marked
@@ -43,30 +46,43 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	// Draw community cards
 	communityCardHands := d.DrawWithLimitHands(5, wc.simulations)
 
-	for _, communityCards := range communityCardHands {
-		// Evaluate each player's hand
-		// fmt.Println(communityCards)
-		bestHands := make([]HandStrength, len(wc.players))
-		for i, hand := range wc.players {
-			bestHands[i], _ = RankHand(hand, communityCards.Cards)
-		}
+	var wg sync.WaitGroup
+	chunkSize := wc.simulations / runtime.NumCPU()
 
-		// fmt.Println(bestHands)
-		// Determine winner(s)
-		winners := findWinners(bestHands)
-		// fmt.Println(winners)
-		if len(winners) == 1 {
-			results[winners[0]] += 1.0
-		} else {
-			// in case of tie or all tie
+	for i := 0; i < wc.simulations; i += chunkSize {
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			localResults := make([]float64, len(wc.players))
 
-			/// TODO: comment tie situation for now
-			winnerPercentage := 1 / float64(len(winners))
-			for _, winner := range winners {
-				results[winner] += winnerPercentage
+			for j := start; j < end && j < len(communityCardHands); j++ {
+				communityCards := communityCardHands[j]
+				bestHands := make([]HandStrength, len(wc.players))
+				for k, hand := range wc.players {
+					bestHands[k], _ = RankHand(hand, communityCards.Cards)
+				}
+
+				winners := findWinners(bestHands)
+				if len(winners) == 1 {
+					localResults[winners[0]] += 1.0
+				} else {
+					winnerPercentage := 1 / float64(len(winners))
+					for _, winner := range winners {
+						localResults[winner] += winnerPercentage
+					}
+				}
 			}
-		}
+
+			mu.Lock()
+			for k := range results {
+				results[k] += localResults[k]
+			}
+			mu.Unlock()
+		}(i, i+chunkSize)
 	}
+
+	wg.Wait()
+
 	// Calculate probabilities
 	probabilities := make([]float64, len(wc.players))
 	for i, wins := range results {
