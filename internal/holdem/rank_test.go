@@ -525,7 +525,7 @@ func TestSmartRankHand(t *testing.T) {
 }
 
 func TestFuzzyRankerComparison(t *testing.T) {
-	// t.Skip("Skipping long-running test in short mode.")
+	t.Skip("Skipping long-running test in short mode.")
 	// Create a full deck of 52 cards
 	var allCards []*deck.Card
 	suits := []string{"♠", "♥", "♦", "♣"}

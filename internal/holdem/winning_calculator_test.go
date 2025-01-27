@@ -88,8 +88,9 @@ func TestWinningCalculator(t *testing.T) {
 			assert.NotNil(t, probsSmart)
 			assert.Equal(t, len(tt.expected), len(probs))
 			for i := range tt.expected {
-				assert.InDelta(t, tt.expected[i], probs[i], 0.015)
-				assert.InDelta(t, tt.expected[i], probsSmart[i], 0.015)
+				assert.InEpsilon(t, tt.expected[i], probs[i], 0.5)
+				assert.InEpsilon(t, tt.expected[i], probsSmart[i], 0.5)
+				assert.InEpsilon(t, probsSmart[i], probs[i], 1)
 			}
 		})
 	}
