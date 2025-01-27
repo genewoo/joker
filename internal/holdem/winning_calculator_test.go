@@ -170,3 +170,25 @@ func TestFindWinners(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkWinningCalculator(b *testing.B) {
+	players := [][]*deck.Card{
+		{deck.NewCard("A", "♠"), deck.NewCard("K", "♠")},
+		{deck.NewCard("Q", "♥"), deck.NewCard("Q", "♦")},
+		{deck.NewCard("A", "♦"), deck.NewCard("K", "♦")},
+	}
+
+	b.Run("DefaultHandRanker", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			calc := NewWinningCalculator(players, 1000, NewDefaultHandRanker())
+			_ = calc.CalculateWinProbabilities()
+		}
+	})
+
+	b.Run("SmartHandRanker", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			calc := NewWinningCalculator(players, 1000, NewSmartHandRanker())
+			_ = calc.CalculateWinProbabilities()
+		}
+	})
+}
