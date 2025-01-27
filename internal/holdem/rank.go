@@ -179,9 +179,9 @@ func (r *SmartHandRanker) RankHand(playerCards []*deck.Card, communityCards []*d
 		for _, card := range allCards {
 			if card.Suit == flushSuit {
 				rank := valueToRank[card.Value]
-				flushRankBits |= 1 << uint(rank)
+				flushRankBits |= 1 << uint(rank-1)
 				if rank == 14 { // Ace can be low
-					flushRankBits |= 1 << 1
+					flushRankBits |= 1 << 0
 				}
 			}
 		}
@@ -191,15 +191,12 @@ func (r *SmartHandRanker) RankHand(playerCards []*deck.Card, communityCards []*d
 			bestHand = collectStraightCards(allCards, straightLowestRank, flushSuit)
 			if straightLowestRank == 10 {
 				strength.Rank = RoyalFlush
-				strength.Values = []int{14}
+				// For Royal Flush, include all card values
+				strength.Values = []int{14, 13, 12, 11, 10}
 			} else {
 				strength.Rank = StraightFlush
-				// For A-5 straight flush, the highest card is 5
-				if straightLowestRank == 1 {
-					strength.Values = []int{5}
-				} else {
-					strength.Values = []int{straightLowestRank + 4} // Highest card in straight
-				}
+				// For straight flush, highest card is straightLowestRank + 4
+				strength.Values = []int{straightLowestRank + 4}
 			}
 			return strength, bestHand
 		}
@@ -265,24 +262,44 @@ func buildHandAnalysis(cards []*deck.Card) (map[string]int, map[string]int, int,
 	for _, card := range cards {
 		valueCount[card.Value]++
 		suitCount[card.Suit]++
+		if _, ok := suitedCards[card.Suit]; !ok {
+			suitedCards[card.Suit] = make([]*deck.Card, 0)
+		}
 		suitedCards[card.Suit] = append(suitedCards[card.Suit], card)
+
+		// Set bit for card rank (2=bit 1, 3=bit 2, ..., A=bit 13)
 		if rank, ok := valueToRank[card.Value]; ok {
-			rankBits |= 1 << uint(rank)
+			rankBits |= 1 << uint(rank-1)
 			if rank == 14 { // Ace can be low
-				rankBits |= 1 << 1
+				rankBits |= 1 << 0
 			}
 		}
+	}
+
+	// Sort suited cards by value
+	for _, cards := range suitedCards {
+		sort.Slice(cards, func(i, j int) bool {
+			return valueToRank[cards[i].Value] > valueToRank[cards[j].Value]
+		})
 	}
 
 	return valueCount, suitCount, rankBits, suitedCards
 }
 
 func findStraight(rankBits int) (bool, int) {
-	for i := 0; i <= 15-5; i++ {
-		if rankBits&(0b11111<<uint16(i)) == 0b11111<<uint16(i) {
+	// // print rankBits in binary
+	// fmt.Printf("rankBits: %b\n", rankBits)
+
+	// Find the highest straight by checking each possible starting position
+	// Start from Ace-high (14) down to 6 (for 6-high straight)
+	for i := 10; i >= 1; i-- {
+		// Create a mask for 5 consecutive bits starting at position i
+		mask := 0x1F << uint(i-1)
+		if (rankBits & mask) == mask {
 			return true, i
 		}
 	}
+
 	return false, 0
 }
 
@@ -666,19 +683,14 @@ func evaluateRemainingCombinations(cards []*deck.Card, valueCount map[string]int
 	for value, count := range valueCount {
 		if count == 3 {
 			strength.Rank = ThreeOfAKind
-			// Get all card values
-			allValues := make([]int, 0, 5)
-			for _, card := range cards {
-				allValues = append(allValues, valueToRank[card.Value])
-			}
 			// Get kickers by filtering out the three of a kind value
 			kickers := make([]int, 0, 2)
-			for _, v := range allValues {
-				if v != valueToRank[value] {
-					kickers = append(kickers, v)
+			for _, card := range cards {
+				if card.Value != value && len(kickers) < 2 {
+					kickers = append(kickers, valueToRank[card.Value])
 				}
 			}
-			// Set values to three of a kind value followed by kickers
+			// Set values to three of a kind value followed by top 2 kickers
 			strength.Values = append([]int{valueToRank[value]}, kickers...)
 			bestHand = collectThreeOfAKind(cards, value)
 			return strength, bestHand
@@ -704,7 +716,7 @@ func evaluateRemainingCombinations(cards []*deck.Card, valueCount map[string]int
 
 	if pairCount >= 2 {
 		strength.Rank = TwoPair
-		// find the kicker by filter out the two pair values
+		// find the kicker by filtering out the two pair values
 		kicker := 0
 		for _, card := range cards {
 			if card.Value != pairValues[0] && card.Value != pairValues[1] {
@@ -725,33 +737,29 @@ func evaluateRemainingCombinations(cards []*deck.Card, valueCount map[string]int
 	// Check for one pair
 	if pairCount == 1 {
 		strength.Rank = OnePair
-		// Set values to pair value followed by kickers
-		pairValue := valueToRank[pairValues[0]]
+		// Get top 3 kickers by filtering out the pair value
 		kickers := make([]int, 0, 3)
 		for _, card := range cards {
-			if card.Value != pairValues[0] {
+			if card.Value != pairValues[0] && len(kickers) < 3 {
 				kickers = append(kickers, valueToRank[card.Value])
 			}
 		}
-		strength.Values = append([]int{pairValue}, kickers...)
+		// Set values to pair value followed by top 3 kickers
+		strength.Values = append([]int{valueToRank[pairValues[0]]}, kickers...)
 		bestHand = collectOnePair(cards, pairValues[0])
 		return strength, bestHand
 	}
 
 	// Default to high card
 	strength.Rank = HighCard
-	// Convert map values to sorted slice for high card values
+	// Take top 5 values
 	values := make([]int, 0, 5)
 	for _, card := range cards {
 		values = append(values, valueToRank[card.Value])
 	}
-	// Sort in descending order
+	// Sort in descending order and take top 5
 	sort.Sort(sort.Reverse(sort.IntSlice(values)))
 	strength.Values = values[:5]
 	bestHand = collectHighCard(cards)
 	return strength, bestHand
-}
-
-func getCardRank(value string) int {
-	return valueToRank[value]
 }

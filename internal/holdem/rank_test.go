@@ -29,7 +29,7 @@ var handTestCases = []struct {
 		},
 		expectedRank: HandStrength{
 			Rank:   RoyalFlush,
-			Values: []int{14},
+			Values: []int{14, 13, 12, 11, 10},
 		},
 	},
 	{
@@ -48,6 +48,24 @@ var handTestCases = []struct {
 		expectedRank: HandStrength{
 			Rank:   StraightFlush,
 			Values: []int{9},
+		},
+	},
+	{
+		name: "Straight Flush 8♠,7♠,6♠,5♠,4♠,3♠,2♠",
+		playerCards: []*deck.Card{
+			{Value: "2", Suit: "♠"},
+			{Value: "8", Suit: "♠"},
+		},
+		communityCards: []*deck.Card{
+			{Value: "7", Suit: "♠"},
+			{Value: "6", Suit: "♠"},
+			{Value: "5", Suit: "♠"},
+			{Value: "4", Suit: "♠"},
+			{Value: "3", Suit: "♠"},
+		},
+		expectedRank: HandStrength{
+			Rank:   StraightFlush,
+			Values: []int{8},
 		},
 	},
 	{
@@ -120,6 +138,25 @@ var handTestCases = []struct {
 		expectedRank: HandStrength{
 			Rank:   Straight,
 			Values: []int{9},
+		},
+	},
+	// A♠,Q♣,6♠,5♠,4♠,3♠,2♠
+	{
+		name: "Straight Flush 2-6",
+		playerCards: []*deck.Card{
+			{Value: "A", Suit: "♠"},
+			{Value: "Q", Suit: "♣"},
+		},
+		communityCards: []*deck.Card{
+			{Value: "6", Suit: "♠"},
+			{Value: "5", Suit: "♠"},
+			{Value: "4", Suit: "♠"},
+			{Value: "3", Suit: "♠"},
+			{Value: "2", Suit: "♠"},
+		},
+		expectedRank: HandStrength{
+			Rank:   StraightFlush,
+			Values: []int{6},
 		},
 	},
 	{
@@ -357,22 +394,6 @@ var handTestCases = []struct {
 	},
 }
 
-func TestRankHand(t *testing.T) {
-	ranker := NewDefaultHandRanker()
-	for _, tt := range handTestCases {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
-			if tt.expectedRank.Rank == InvalidHand {
-				assert.Nil(t, cards)
-			} else {
-				assert.NotNil(t, cards)
-			}
-			assert.Equal(t, tt.expectedRank.Rank, rank.Rank)
-		})
-	}
-}
-
 func TestHandStrengthCompare(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -463,11 +484,11 @@ func TestHandStrengthCompare(t *testing.T) {
 	}
 }
 
-func TestSmartRankHand(t *testing.T) {
-	ranker := NewSmartHandRanker()
+func TestRankHand(t *testing.T) {
+	ranker := NewDefaultHandRanker()
+	t.Parallel()
 	for _, tt := range handTestCases {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
 			if tt.expectedRank.Rank == InvalidHand {
 				assert.Nil(t, cards)
@@ -475,11 +496,36 @@ func TestSmartRankHand(t *testing.T) {
 				assert.NotNil(t, cards)
 			}
 			assert.Equal(t, tt.expectedRank.Rank, rank.Rank)
+			if len(tt.expectedRank.Values) > 0 {
+				// compare tt.expectedRank.Values with rank.Value
+				assert.Equal(t, tt.expectedRank.Values, rank.Values)
+			}
+		})
+	}
+}
+
+func TestSmartRankHand(t *testing.T) {
+	ranker := NewSmartHandRanker()
+	t.Parallel()
+	for _, tt := range handTestCases {
+		t.Run(tt.name, func(t *testing.T) {
+			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
+			if tt.expectedRank.Rank == InvalidHand {
+				assert.Nil(t, cards)
+			} else {
+				assert.NotNil(t, cards)
+			}
+			assert.Equal(t, tt.expectedRank.Rank, rank.Rank)
+			if len(tt.expectedRank.Values) > 0 {
+				// compare tt.expectedRank.Values with rank.Value
+				assert.Equal(t, tt.expectedRank.Values, rank.Values)
+			}
 		})
 	}
 }
 
 func TestFuzzyRankerComparison(t *testing.T) {
+	// t.Skip("Skipping long-running test in short mode.")
 	// Create a full deck of 52 cards
 	var allCards []*deck.Card
 	suits := []string{"♠", "♥", "♦", "♣"}
