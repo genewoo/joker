@@ -14,14 +14,16 @@ type WinningCalculator struct {
 	simulations int
 	players     [][]*deck.Card
 	rng         *rand.Rand
+	ranker      HandRanker
 }
 
 // NewWinningCalculator creates a new WinningCalculator with specified players and simulations
-func NewWinningCalculator(players [][]*deck.Card, simulations int) *WinningCalculator {
+func NewWinningCalculator(players [][]*deck.Card, simulations int, ranker HandRanker) *WinningCalculator {
 	return &WinningCalculator{
 		simulations: simulations,
 		players:     players,
 		rng:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		ranker:      ranker,
 	}
 }
 
@@ -58,7 +60,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 			bestHands := make([]HandStrength, len(wc.players))
 			for k, hand := range wc.players {
 				// var x []*deck.Card
-				bestHands[k], _ = RankHand(hand, communityCards.Cards)
+				bestHands[k], _ = wc.ranker.RankHand(hand, communityCards.Cards)
 				// fmt.Println(x)
 			}
 
@@ -92,7 +94,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 					communityCards := communityCardHands[j]
 					bestHands := make([]HandStrength, len(wc.players))
 					for k, hand := range wc.players {
-						bestHands[k], _ = RankHand(hand, communityCards.Cards)
+						bestHands[k], _ = wc.ranker.RankHand(hand, communityCards.Cards)
 					}
 
 					winners := findWinners(bestHands)

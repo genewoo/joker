@@ -1,6 +1,7 @@
 package holdem
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/genewoo/joker/internal/deck"
@@ -357,10 +358,11 @@ var handTestCases = []struct {
 }
 
 func TestRankHand(t *testing.T) {
+	ranker := NewDefaultHandRanker()
 	for _, tt := range handTestCases {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			rank, cards := RankHand(tt.playerCards, tt.communityCards)
+			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
 			if tt.expectedRank.Rank == InvalidHand {
 				assert.Nil(t, cards)
 			} else {
@@ -462,10 +464,11 @@ func TestHandStrengthCompare(t *testing.T) {
 }
 
 func TestSmartRankHand(t *testing.T) {
+	ranker := NewSmartHandRanker()
 	for _, tt := range handTestCases {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			rank, cards := SmartRankHand(tt.playerCards, tt.communityCards)
+			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
 			if tt.expectedRank.Rank == InvalidHand {
 				assert.Nil(t, cards)
 			} else {
@@ -473,5 +476,72 @@ func TestSmartRankHand(t *testing.T) {
 			}
 			assert.Equal(t, tt.expectedRank.Rank, rank.Rank)
 		})
+	}
+}
+
+func TestFuzzyRankerComparison(t *testing.T) {
+	// Create a full deck of 52 cards
+	var allCards []*deck.Card
+	suits := []string{"♠", "♥", "♦", "♣"}
+	values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
+
+	for _, suit := range suits {
+		for _, value := range values {
+			allCards = append(allCards, &deck.Card{Value: value, Suit: suit})
+		}
+	}
+
+	// Initialize both rankers
+	smartRanker := NewSmartHandRanker()
+	defaultRanker := NewDefaultHandRanker()
+
+	// Helper function to generate combinations of 7 cards
+	var generateCombinations func(cards []*deck.Card, start, k int, current []*deck.Card, result *[][]*deck.Card)
+	generateCombinations = func(cards []*deck.Card, start, k int, current []*deck.Card, result *[][]*deck.Card) {
+		if len(current) == k {
+			combination := make([]*deck.Card, len(current))
+			copy(combination, current)
+			*result = append(*result, combination)
+			return
+		}
+
+		for i := start; i < len(cards); i++ {
+			current = append(current, cards[i])
+			generateCombinations(cards, i+1, k, current, result)
+			current = current[:len(current)-1]
+		}
+	}
+
+	// Generate all 7-card combinations
+	var combinations [][]*deck.Card
+	generateCombinations(allCards, 0, 7, []*deck.Card{}, &combinations)
+
+	// Test each combination
+	for i, combo := range combinations {
+		if i > 1000 { // Limit to first 1000 combinations for reasonable test time
+			break
+		}
+
+		// Split into player cards (2) and community cards (5)
+		playerCards := combo[:2]
+		communityCards := combo[2:]
+
+		// Get rankings from both rankers
+		smartRank, smartCards := smartRanker.RankHand(playerCards, communityCards)
+		defaultRank, defaultCards := defaultRanker.RankHand(playerCards, communityCards)
+
+		if defaultRank.Rank != smartRank.Rank || len(defaultCards) != len(smartCards) || smartRank.Compare(defaultRank) != 0 {
+			fmt.Println("Failed on ", deck.NewHand(combo...).String())
+			fmt.Println(defaultRank, smartRank)
+			fmt.Println(defaultCards, smartCards)
+		}
+		// Compare results
+		assert.Equal(t, defaultRank.Rank, smartRank.Rank, "Rank mismatch for combination %d", i)
+		assert.Equal(t, len(defaultCards), len(smartCards), "Best hand length mismatch for combination %d", i)
+
+		// Compare hand strengths
+		assert.Equal(t, 0, smartRank.Compare(defaultRank),
+			"Hand strength comparison mismatch for combination %d\nSmart: %v\nDefault: %v",
+			i, smartRank, defaultRank)
 	}
 }

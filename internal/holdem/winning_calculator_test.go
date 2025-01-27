@@ -78,14 +78,18 @@ func TestWinningCalculator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			calc := NewWinningCalculator(tt.players, tt.simulations)
+			calc := NewWinningCalculator(tt.players, tt.simulations, NewDefaultHandRanker())
+			calcSmart := NewWinningCalculator(tt.players, tt.simulations, NewSmartHandRanker())
 			probs := calc.CalculateWinProbabilities()
+			probsSmart := calcSmart.CalculateWinProbabilities()
 			fmt.Println(probs)
+			fmt.Println(probsSmart)
 			assert.NotNil(t, probs)
-
+			assert.NotNil(t, probsSmart)
 			assert.Equal(t, len(tt.expected), len(probs))
 			for i := range tt.expected {
 				assert.InDelta(t, tt.expected[i], probs[i], 0.015)
+				assert.InDelta(t, tt.expected[i], probsSmart[i], 0.015)
 			}
 		})
 	}
