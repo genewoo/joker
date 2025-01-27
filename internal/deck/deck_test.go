@@ -1,7 +1,6 @@
 package deck
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -81,9 +80,9 @@ func (s *DeckTestSuite) TestShuffle() {
 		afterCards2[i] = card.String()
 	}
 
-	fmt.Println(cards)
-	fmt.Println(afterCards)
-	fmt.Println(afterCards2)
+	// fmt.Println(cards)
+	// fmt.Println(afterCards)
+	// fmt.Println(afterCards2)
 	assert.ElementsMatch(s.T(), cards, afterCards, "Shuffle should change the deck order")
 	assert.ElementsMatch(s.T(), afterCards, afterCards2, "Shuffle should change the deck order")
 }
@@ -374,9 +373,9 @@ func (s *DeckTestSuite) TestDrawWithLimitHands() {
 				for _, hand := range hands {
 					key := hand.String()
 					if !seenCards[key] {
-						fmt.Printf("Hand: %s\n", key)
+						// fmt.Printf("Hand: %s\n", key)
 					} else {
-						fmt.Printf("Hand Duplicated: %s\n", key)
+						// fmt.Printf("Hand Duplicated: %s\n", key)
 					}
 					assert.False(s.T(), seenCards[hand.String()], hand.String())
 					seenCards[hand.String()] = true
