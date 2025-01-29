@@ -9,6 +9,20 @@ import (
 	"github.com/genewoo/joker/internal/holdem"
 )
 
+// printProbabilities prints the winning probabilities for each player
+func printProbabilities(probabilities []float64) {
+	total := 0.0
+	for i := 0; i < len(probabilities); i++ {
+		total += probabilities[i]
+		if i < len(probabilities)-1 {
+			fmt.Printf("Player %d: %.2f%%\n", i+1, probabilities[i]*100)
+		} else {
+			fmt.Printf("Tie probability: %.2f%%\n", probabilities[i]*100)
+		}
+	}
+	fmt.Printf("Total probability: %.2f%%\n", total*100)
+}
+
 func main() {
 	// Parse command line flags
 	numPlayers := flag.Int("n", 2, "Number of players")
@@ -37,13 +51,8 @@ func main() {
 	ranker := holdem.NewSmartHandRanker()
 	// Calculate initial winning probabilities
 	calculator := holdem.NewWinningCalculator(playerCards, 10000, ranker)
-	probabilities := calculator.CalculateWinProbabilities()
-
 	fmt.Println("\nInitial winning probabilities:")
-	for i := 0; i < len(probabilities)-1; i++ {
-		fmt.Printf("Player %d: %.2f%%\n", i+1, probabilities[i]*100)
-	}
-	fmt.Printf("Tie probability: %.2f%%\n", probabilities[len(probabilities)-1]*100)
+	printProbabilities(calculator.CalculateWinProbabilities())
 
 	// Deal the flop
 	fmt.Println("\nDealing the flop...")
@@ -52,12 +61,26 @@ func main() {
 	}
 	fmt.Printf("Flop: %v %v %v\n", game.Community[0], game.Community[1], game.Community[2])
 
+	// Update calculator with flop cards and show new probabilities
+	if err := calculator.AppendCommunityCards(game.Community[0], game.Community[1], game.Community[2]); err != nil {
+		log.Fatalf("Failed to append flop cards: %v", err)
+	}
+	fmt.Println("\nProbabilities after flop:")
+	printProbabilities(calculator.CalculateWinProbabilities())
+
 	// Deal the turn
 	fmt.Println("\nDealing the turn...")
 	if err := game.DealTurnOrRiver(); err != nil {
 		log.Fatalf("Failed to deal turn: %v", err)
 	}
 	fmt.Printf("Turn: %v\n", game.Community[3])
+
+	// Update calculator with turn card and show new probabilities
+	if err := calculator.AppendCommunityCards(game.Community[3]); err != nil {
+		log.Fatalf("Failed to append turn card: %v", err)
+	}
+	fmt.Println("\nProbabilities after turn:")
+	printProbabilities(calculator.CalculateWinProbabilities())
 
 	// Deal the river
 	fmt.Println("\nDealing the river...")
@@ -66,26 +89,34 @@ func main() {
 	}
 	fmt.Printf("River: %v\n", game.Community[4])
 
-	// Calculate final hands and determine winner
-	fmt.Println("\nFinal hands:")
-
-	bestHands := make([]holdem.HandStrength, *numPlayers)
-
-	for i, player := range game.Players {
-		bestHand, _ := ranker.RankHand(player.Cards, game.Community)
-		bestHands[i] = bestHand
-		fmt.Printf("Player %d: %s %s - %v\n", i+1, player.Cards[0], player.Cards[1], bestHand)
+	// Update calculator with river card and evaluate final hands
+	if err := calculator.AppendCommunityCards(game.Community[4]); err != nil {
+		log.Fatalf("Failed to append river card: %v", err)
 	}
 
-	// Find winners
-	winners := holdem.FindWinners(bestHands)
+	// Calculate final hands and determine winner using showdown
+	fmt.Println("\nFinal hands:")
+	result, err := calculator.EvaluateShowdown()
+	if err != nil {
+		log.Fatalf("Failed to evaluate showdown: %v", err)
+	}
+
+	// Print final hands with their best 5-card combinations
+	for i := range result.HandStrengths {
+		fmt.Printf("Player %d: %s %s - %v (Best hand: %v)\n",
+			i+1,
+			game.Players[i].Cards[0],
+			game.Players[i].Cards[1],
+			result.HandStrengths[i],
+			result.BestHands[i])
+	}
 
 	fmt.Println("\nWinners:")
-	if len(winners) == 1 {
-		fmt.Printf("Player %d wins!\n", winners[0]+1)
+	if len(result.Winners) == 1 {
+		fmt.Printf("Player %d wins!\n", result.Winners[0]+1)
 	} else {
 		fmt.Printf("Tie between players: ")
-		for i, winner := range winners {
+		for i, winner := range result.Winners {
 			if i > 0 {
 				fmt.Print(", ")
 			}
