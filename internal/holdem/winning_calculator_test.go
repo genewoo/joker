@@ -165,7 +165,7 @@ func TestFindWinners(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			winners := findWinners(tt.hands)
+			winners := FindWinners(tt.hands)
 			assert.Equal(t, tt.expected, winners)
 		})
 	}

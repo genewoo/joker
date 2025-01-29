@@ -76,7 +76,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 				// fmt.Println(x)
 			}
 
-			winners := findWinners(bestHands)
+			winners := FindWinners(bestHands)
 			if len(winners) == 1 {
 				localResults[winners[0]] += 1.0
 			} else if len(winners) > 1 && len(winners) < len(wc.players) {
@@ -109,7 +109,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 						bestHands[k], _ = wc.ranker.RankHand(hand, communityCards.Cards)
 					}
 
-					winners := findWinners(bestHands)
+					winners := FindWinners(bestHands)
 					if len(winners) == 1 {
 						localResults[winners[0]] += 1.0
 					} else if len(winners) > 1 && len(winners) < len(wc.players) {
@@ -142,9 +142,9 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	return probabilities
 }
 
-// findWinners returns indices of players with the best hand(s).
+// FindWinners returns indices of players with the best hand(s).
 // If multiple players have equally strong hands, all their indices are returned.
-func findWinners(hands []HandStrength) []int {
+func FindWinners(hands []HandStrength) []int {
 	if len(hands) == 0 {
 		return nil
 	}
