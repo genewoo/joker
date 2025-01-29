@@ -1,3 +1,5 @@
+// Package holdem implements Texas Hold'em poker game logic, including dealing cards,
+// managing game state, and evaluating poker hands.
 package holdem
 
 import (
@@ -7,6 +9,8 @@ import (
 	"github.com/genewoo/joker/internal/deck"
 )
 
+// Game represents a Texas Hold'em poker game instance, managing the deck,
+// players, community cards, and game state.
 type Game struct {
 	dealer dealer.DealStrategy
 	deck   *deck.Deck
@@ -20,12 +24,15 @@ type Game struct {
 	burnCards []*deck.Card
 }
 
+// Player represents a poker player with their hole cards and chip stack.
 type Player struct {
 	ID    int
 	Cards []*deck.Card
 	Chips int
 }
 
+// NewGame creates a new Texas Hold'em game instance with the specified number of players.
+// It initializes a fresh deck, dealer, and empty community cards.
 func NewGame(numPlayers int) *Game {
 	return &Game{
 		dealer:    &dealer.StandardDealer{},
@@ -35,6 +42,8 @@ func NewGame(numPlayers int) *Game {
 	}
 }
 
+// StartHand begins a new hand by shuffling the deck and dealing two cards to each player.
+// Returns an error if dealing fails.
 func (g *Game) StartHand() error {
 	g.deck.Shuffle()
 	g.Community = g.Community[:0]
@@ -60,6 +69,8 @@ func (g *Game) burnCard() error {
 	return nil
 }
 
+// DealCommunityCards deals the specified number of community cards to the table after burning one card.
+// Returns an error if there aren't enough cards or if dealing fails.
 func (g *Game) DealCommunityCards(numCards int) error {
 	// Burn one card before dealing
 	if err := g.burnCard(); err != nil {
@@ -74,13 +85,18 @@ func (g *Game) DealCommunityCards(numCards int) error {
 	return nil
 }
 
+// DealFlop deals the first three community cards (the flop) after burning one card.
+// Returns an error if dealing fails.
 func (g *Game) DealFlop() error {
 	return g.DealCommunityCards(3)
 }
 
+// DealTurnOrRiver deals one community card (either the turn or river) after burning one card.
+// Returns an error if dealing fails.
 func (g *Game) DealTurnOrRiver() error {
 	return g.DealCommunityCards(1)
 }
 
+// AddToPot adds the specified amount to the current pot.
 func (g *Game) AddToPot(amount int) {
 }

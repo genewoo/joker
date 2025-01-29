@@ -9,33 +9,43 @@ import (
 // Types and Constants
 // ==================
 
-// HandRank represents the strength of a poker hand
+// HandRank represents the strength of a poker hand, from lowest (HighCard) to highest (RoyalFlush).
 type HandRank int
 
 const (
+	// InvalidHand represents an invalid or incomplete poker hand
 	InvalidHand HandRank = iota
+	// HighCard represents a hand with no matching cards, ranked by highest card
 	HighCard
+	// OnePair represents a hand with two cards of the same rank
 	OnePair
+	// TwoPair represents a hand with two different pairs
 	TwoPair
+	// ThreeOfAKind represents a hand with three cards of the same rank
 	ThreeOfAKind
+	// Straight represents a hand with five consecutive cards of different suits
 	Straight
+	// Flush represents a hand with five cards of the same suit
 	Flush
+	// FullHouse represents a hand with three cards of one rank and two of another
 	FullHouse
+	// FourOfAKind represents a hand with four cards of the same rank
 	FourOfAKind
+	// StraightFlush represents a hand with five consecutive cards of the same suit
 	StraightFlush
+	// RoyalFlush represents a straight flush from Ten to Ace
 	RoyalFlush
 )
 
-// HandStrength contains detailed information about a hand's strength
+// HandStrength contains detailed information about a hand's strength,
+// including its rank and the values of the cards that determine its strength
+// in order of importance (e.g., pair value followed by kicker values).
 type HandStrength struct {
 	Rank   HandRank
 	Values []int // Card values in descending order of importance
 }
 
-// HandRanker Interface
-// ===================
-
-// HandRanker defines the interface for ranking poker hands
+// HandRanker defines the interface for ranking poker hands.
 type HandRanker interface {
 	// RankHand evaluates the best 5-card hand from a player's 2 cards and 5 community cards
 	RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card)
@@ -45,11 +55,13 @@ type HandRanker interface {
 // =========================
 
 // DefaultHandRanker implements HandRanker using the traditional all-combinations approach
+// by evaluating every possible 5-card combination from the 7 available cards.
 type DefaultHandRanker struct {
 	organizer deck.Organizer
 }
 
 // SmartHandRanker implements HandRanker using a more efficient algorithm
+// that avoids evaluating unnecessary combinations by analyzing card patterns.
 type SmartHandRanker struct {
 	organizer deck.Organizer
 }
@@ -57,14 +69,14 @@ type SmartHandRanker struct {
 // Factory Functions
 // ================
 
-// NewDefaultHandRanker creates a new DefaultHandRanker
+// NewDefaultHandRanker creates a new DefaultHandRanker instance with a default card organizer.
 func NewDefaultHandRanker() *DefaultHandRanker {
 	return &DefaultHandRanker{
 		organizer: &deck.DefaultOrganizer{},
 	}
 }
 
-// NewSmartHandRanker creates a new SmartHandRanker
+// NewSmartHandRanker creates a new SmartHandRanker instance with a default card organizer.
 func NewSmartHandRanker() *SmartHandRanker {
 	return &SmartHandRanker{
 		organizer: &deck.DefaultOrganizer{},
@@ -74,7 +86,7 @@ func NewSmartHandRanker() *SmartHandRanker {
 // HandStrength Methods
 // ===================
 
-// NewHandStrength creates and initializes a new HandStrength
+// NewHandStrength creates and initializes a new HandStrength with default values.
 func NewHandStrength() HandStrength {
 	return HandStrength{
 		Rank:   HighCard,
@@ -82,8 +94,12 @@ func NewHandStrength() HandStrength {
 	}
 }
 
-// Compare compares two HandStrength values
-// Returns -1 if h is weaker than other, 0 if equal, 1 if h is stronger
+// Compare compares two HandStrength values.
+// Returns:
+//
+//	-1 if this hand is weaker than other
+//	 0 if the hands are equal
+//	 1 if this hand is stronger than other
 func (h HandStrength) Compare(other HandStrength) int {
 	// First compare ranks
 	if h.Rank < other.Rank {
@@ -110,7 +126,7 @@ func (h HandStrength) Compare(other HandStrength) int {
 // HandRank Methods
 // ===============
 
-// String returns a human-readable representation of the hand rank
+// String returns a human-readable representation of the hand rank.
 func (hr HandRank) String() string {
 	return [...]string{
 		"Invalid Hand",
@@ -130,7 +146,9 @@ func (hr HandRank) String() string {
 // DefaultHandRanker Methods
 // ========================
 
-// RankHand evaluates the best 5-card hand from a player's 2 cards and 5 community cards
+// RankHand evaluates the best 5-card hand from a player's 2 hole cards
+// and 5 community cards using the traditional all-combinations approach.
+// Returns the hand strength and the best 5 cards that form the hand.
 func (r *DefaultHandRanker) RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card) {
 	if len(playerCards) != 2 || len(communityCards) != 5 {
 		strength := NewHandStrength()
@@ -148,7 +166,9 @@ func (r *DefaultHandRanker) RankHand(playerCards []*deck.Card, communityCards []
 // SmartHandRanker Methods
 // ======================
 
-// RankHand evaluates the best 5-card hand from a player's 2 cards and 5 community cards
+// RankHand evaluates the best 5-card hand from a player's 2 hole cards
+// and 5 community cards using an optimized pattern-matching algorithm.
+// Returns the hand strength and the best 5 cards that form the hand.
 func (r *SmartHandRanker) RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card) {
 	if len(playerCards) != 2 || len(communityCards) != 5 {
 		strength := NewHandStrength()

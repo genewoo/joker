@@ -10,14 +10,20 @@ import (
 )
 
 // WinningCalculator calculates winning probabilities for Texas Hold'em hands
+// by simulating multiple games with random community cards and evaluating
+// the best possible hand for each player.
 type WinningCalculator struct {
-	simulations int
-	players     [][]*deck.Card
-	rng         *rand.Rand
-	ranker      HandRanker
+	simulations int            // Number of simulations to run
+	players     [][]*deck.Card // Each player's hole cards
+	rng         *rand.Rand     // Random number generator for simulations
+	ranker      HandRanker     // Hand ranking implementation to use
 }
 
-// NewWinningCalculator creates a new WinningCalculator with specified players and simulations
+// NewWinningCalculator creates a new WinningCalculator with specified players and simulations.
+// Parameters:
+//   - players: A slice of player hole cards, where each element is a slice of 2 cards
+//   - simulations: Number of Monte Carlo simulations to run
+//   - ranker: The hand ranking implementation to use for evaluating hands
 func NewWinningCalculator(players [][]*deck.Card, simulations int, ranker HandRanker) *WinningCalculator {
 	return &WinningCalculator{
 		simulations: simulations,
@@ -31,6 +37,12 @@ func NewWinningCalculator(players [][]*deck.Card, simulations int, ranker HandRa
 var disableGoroutines = false
 
 // CalculateWinProbabilities calculates winning probabilities for each player
+// by running Monte Carlo simulations with random community cards.
+// Returns a slice of probabilities where:
+//   - indices 0 to n-1 contain each player's probability of winning
+//   - index n contains the probability of a complete tie between all players
+//
+// The probabilities sum to 1.0.
 func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	if len(wc.players) == 0 {
 		return nil
@@ -130,7 +142,8 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	return probabilities
 }
 
-// findWinners returns indices of players with the best hand(s)
+// findWinners returns indices of players with the best hand(s).
+// If multiple players have equally strong hands, all their indices are returned.
 func findWinners(hands []HandStrength) []int {
 	if len(hands) == 0 {
 		return nil
