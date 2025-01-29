@@ -26,10 +26,10 @@ type WinningCalculator struct {
 //   - players: A slice of player hole cards, where each element is a slice of 2 cards
 //   - simulations: Number of Monte Carlo simulations to run
 //   - ranker: The hand ranking implementation to use for evaluating hands
-//   - communityCards: Optional pre-existing community cards (0-4 cards)
+//   - communityCards: Optional pre-existing community cards (0-5 cards)
 func NewWinningCalculator(players [][]*deck.Card, simulations int, ranker HandRanker, communityCards ...*deck.Card) *WinningCalculator {
-	if len(communityCards) > 4 {
-		communityCards = communityCards[:4] // Limit to 4 pre-existing community cards
+	if len(communityCards) > 5 {
+		communityCards = communityCards[:5] // Allow up to 5 community cards for showdown
 	}
 	return &WinningCalculator{
 		simulations:    simulations,
@@ -185,8 +185,8 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	}
 
 	// Calculate probabilities
-	probabilities := make([]float64, len(wc.players)+1) // Add extra slot for tie percentage
-	totalSimulations := float64(requiredSimulations)
+	probabilities := make([]float64, len(wc.players)+1)  // Add extra slot for tie percentage
+	totalSimulations := float64(len(communityCardHands)) // Use actual number of hands dealt
 	for i, wins := range results {
 		probabilities[i] = float64(wins) / totalSimulations
 	}
