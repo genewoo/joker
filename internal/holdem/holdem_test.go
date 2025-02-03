@@ -8,25 +8,87 @@ import (
 )
 
 func TestNewGame(t *testing.T) {
-	game := NewGame(4)
-	assert.NotNil(t, game)
-	assert.Equal(t, 4, len(game.Players))
-	assert.IsType(t, &dealer.StandardDealer{}, game.dealer)
-	assert.NotNil(t, game.deck)
+	tests := []struct {
+		name          string
+		gameType      GameType
+		numPlayers    int
+		expectedCards int // number of cards in deck
+	}{
+		{
+			name:          "Texas Hold'em",
+			gameType:      Texas,
+			numPlayers:    4,
+			expectedCards: 52, // full deck
+		},
+		{
+			name:          "Short Deck Hold'em",
+			gameType:      Short,
+			numPlayers:    4,
+			expectedCards: 36, // 52 - 16 (cards 2-5)
+		},
+		{
+			name:          "Omaha Hold'em",
+			gameType:      Omaha,
+			numPlayers:    4,
+			expectedCards: 52, // full deck
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			game := NewGame(tt.gameType, tt.numPlayers)
+			assert.NotNil(t, game)
+			assert.Equal(t, tt.numPlayers, len(game.Players))
+			assert.IsType(t, &dealer.StandardDealer{}, game.dealer)
+			assert.NotNil(t, game.deck)
+			assert.Equal(t, tt.expectedCards, len(game.deck.Cards))
+			assert.Equal(t, tt.gameType, game.gameType)
+		})
+	}
 }
 
 func TestStartHand(t *testing.T) {
-	game := NewGame(2)
-	err := game.StartHand()
-	assert.NoError(t, err)
+	tests := []struct {
+		name              string
+		gameType          GameType
+		numPlayers        int
+		expectedHoleCards int // number of hole cards per player
+	}{
+		{
+			name:              "Texas Hold'em - 2 hole cards",
+			gameType:          Texas,
+			numPlayers:        2,
+			expectedHoleCards: 2,
+		},
+		{
+			name:              "Short Deck Hold'em - 2 hole cards",
+			gameType:          Short,
+			numPlayers:        3,
+			expectedHoleCards: 2,
+		},
+		{
+			name:              "Omaha Hold'em - 4 hole cards",
+			gameType:          Omaha,
+			numPlayers:        4,
+			expectedHoleCards: 4,
+		},
+	}
 
-	for _, player := range game.Players {
-		assert.Equal(t, 2, len(player.Cards))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			game := NewGame(tt.gameType, tt.numPlayers)
+			err := game.StartHand()
+			assert.NoError(t, err)
+
+			for _, player := range game.Players {
+				assert.Equal(t, tt.expectedHoleCards, len(player.Cards))
+			}
+		})
 	}
 }
 
 func TestDealFlop(t *testing.T) {
-	game := NewGame(2)
+	game := NewGame(Texas, 2)
 	_ = game.StartHand()
 
 	err := game.DealFlop()
@@ -35,7 +97,7 @@ func TestDealFlop(t *testing.T) {
 }
 
 func TestDealTurnOrRiver(t *testing.T) {
-	game := NewGame(2)
+	game := NewGame(Texas, 2)
 	_ = game.StartHand()
 	_ = game.DealFlop()
 
@@ -46,7 +108,7 @@ func TestDealTurnOrRiver(t *testing.T) {
 }
 
 func TestBurnCard(t *testing.T) {
-	game := NewGame(2)
+	game := NewGame(Texas, 2)
 	initialCount := game.deck.Count()
 
 	err := game.burnCard()
@@ -56,7 +118,7 @@ func TestBurnCard(t *testing.T) {
 }
 
 func TestBurnCardError(t *testing.T) {
-	game := NewGame(2)
+	game := NewGame(Texas, 2)
 	// Empty the deck
 	for i := 0; i < 52; i++ {
 		_ = game.burnCard()

@@ -1,4 +1,4 @@
-package main
+package holdem
 
 import (
 	"flag"
@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/genewoo/joker/internal/deck"
-	"github.com/genewoo/joker/internal/holdem"
 )
 
 // printProbabilities prints the winning probabilities for each player
@@ -33,7 +32,7 @@ func main() {
 	}
 
 	// Create new game
-	game := holdem.NewGame(*numPlayers)
+	game := NewGame(Texas, *numPlayers)
 
 	// Start the hand - deal cards to players
 	if err := game.StartHand(); err != nil {
@@ -48,9 +47,9 @@ func main() {
 		playerCards[i] = player.Cards
 	}
 
-	ranker := holdem.NewSmartHandRanker()
+	ranker := NewSmartHandRanker()
 	// Calculate initial winning probabilities
-	calculator := holdem.NewWinningCalculator(playerCards, 10000, ranker)
+	calculator := NewWinningCalculator(playerCards, 10000, ranker)
 	fmt.Println("\nInitial winning probabilities:")
 	printProbabilities(calculator.CalculateWinProbabilities())
 

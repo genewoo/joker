@@ -1,7 +1,7 @@
 .PHONY: build test clean test-coverage coverage-report
 
 build:
-	go build -o bin ./... 
+	go build -o bin ./cmd/joker
 
 test:
 	go test ./...
