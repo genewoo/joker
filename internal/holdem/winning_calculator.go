@@ -116,7 +116,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 
 			bestHands := make([]HandStrength, len(wc.players))
 			for k, hand := range wc.players {
-				bestHands[k], _ = wc.ranker.RankHand(hand, allCommunityCards)
+				bestHands[k], _ = wc.ranker.RankHand(Texas, hand, allCommunityCards)
 			}
 
 			winners := FindWinners(bestHands)
@@ -157,7 +157,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 
 					bestHands := make([]HandStrength, len(wc.players))
 					for k, hand := range wc.players {
-						bestHands[k], _ = wc.ranker.RankHand(hand, allCommunityCards)
+						bestHands[k], _ = wc.ranker.RankHand(Texas, hand, allCommunityCards)
 					}
 
 					winners := FindWinners(bestHands)
@@ -227,7 +227,7 @@ func (wc *WinningCalculator) EvaluateShowdown() (*ShowdownResult, error) {
 	bestHands := make([][]*deck.Card, len(wc.players))
 	for i, hand := range wc.players {
 		var bestHand []*deck.Card
-		handStrengths[i], bestHand = wc.ranker.RankHand(hand, wc.communityCards)
+		handStrengths[i], bestHand = wc.ranker.RankHand(Texas, hand, wc.communityCards)
 		bestHands[i] = bestHand
 	}
 

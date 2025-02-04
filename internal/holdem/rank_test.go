@@ -489,7 +489,7 @@ func TestRankHand(t *testing.T) {
 	t.Parallel()
 	for _, tt := range handTestCases {
 		t.Run(tt.name, func(t *testing.T) {
-			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
+			rank, cards := ranker.RankHand(Texas, tt.playerCards, tt.communityCards)
 			if tt.expectedRank.Rank == InvalidHand {
 				assert.Nil(t, cards)
 			} else {
@@ -509,7 +509,7 @@ func TestSmartRankHand(t *testing.T) {
 	t.Parallel()
 	for _, tt := range handTestCases {
 		t.Run(tt.name, func(t *testing.T) {
-			rank, cards := ranker.RankHand(tt.playerCards, tt.communityCards)
+			rank, cards := ranker.RankHand(Texas, tt.playerCards, tt.communityCards)
 			if tt.expectedRank.Rank == InvalidHand {
 				assert.Nil(t, cards)
 			} else {
@@ -573,8 +573,8 @@ func TestFuzzyRankerComparison(t *testing.T) {
 		communityCards := combo[2:]
 
 		// Get rankings from both rankers
-		smartRank, smartCards := smartRanker.RankHand(playerCards, communityCards)
-		defaultRank, defaultCards := defaultRanker.RankHand(playerCards, communityCards)
+		smartRank, smartCards := smartRanker.RankHand(Texas, playerCards, communityCards)
+		defaultRank, defaultCards := defaultRanker.RankHand(Texas, playerCards, communityCards)
 
 		if defaultRank.Rank != smartRank.Rank || len(defaultCards) != len(smartCards) || smartRank.Compare(defaultRank) != 0 {
 			fmt.Println("Failed on ", deck.NewHand(combo...).String())

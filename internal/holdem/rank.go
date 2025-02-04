@@ -48,7 +48,7 @@ type HandStrength struct {
 // HandRanker defines the interface for ranking poker hands.
 type HandRanker interface {
 	// RankHand evaluates the best 5-card hand from a player's 2 cards and 5 community cards
-	RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card)
+	RankHand(gameType GameType, playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card)
 }
 
 // HandRanker Implementations
@@ -149,7 +149,7 @@ func (hr HandRank) String() string {
 // RankHand evaluates the best 5-card hand from a player's 2 hole cards
 // and 5 community cards using the traditional all-combinations approach.
 // Returns the hand strength and the best 5 cards that form the hand.
-func (r *DefaultHandRanker) RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card) {
+func (r *DefaultHandRanker) RankHand(gameType GameType, playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card) {
 	if len(playerCards) != 2 || len(communityCards) != 5 {
 		strength := NewHandStrength()
 		strength.Rank = InvalidHand
@@ -169,7 +169,7 @@ func (r *DefaultHandRanker) RankHand(playerCards []*deck.Card, communityCards []
 // RankHand evaluates the best 5-card hand from a player's 2 hole cards
 // and 5 community cards using an optimized pattern-matching algorithm.
 // Returns the hand strength and the best 5 cards that form the hand.
-func (r *SmartHandRanker) RankHand(playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card) {
+func (r *SmartHandRanker) RankHand(gameType GameType, playerCards []*deck.Card, communityCards []*deck.Card) (HandStrength, []*deck.Card) {
 	if len(playerCards) != 2 || len(communityCards) != 5 {
 		strength := NewHandStrength()
 		strength.Rank = InvalidHand
