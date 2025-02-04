@@ -12,41 +12,45 @@ import (
 
 // NewHoldemCmd creates a new holdem game command
 func NewHoldemCmd(options *HoldemOptions) *cobra.Command {
+	// Store game type as string for flag
+	var gameTypeStr string
+
 	holdemCmd := &cobra.Command{
 		Use:   "holdem",
 		Short: "Texas Hold'em style game commands",
 		Long:  `Texas Hold'em style poker game with various options.`,
 	}
 
-	dealCmd := createDealCmd(options)
+	dealCmd := createDealCmd(options, &gameTypeStr)
 	eqCmd := createEquityCmd(options)
 
 	holdemCmd.AddCommand(dealCmd, eqCmd)
 	return holdemCmd
 }
 
-func createDealCmd(options *HoldemOptions) *cobra.Command {
+func createDealCmd(options *HoldemOptions, gameTypeStr *string) *cobra.Command {
+
+	// Create help message for game types using AllGameTypes
+	gameTypes := make([]string, len(holdem.AllGameTypes()))
+	for i, gt := range holdem.AllGameTypes() {
+		gameTypes[i] = gt.String()
+	}
+	gameTypeHelp := fmt.Sprintf("Game type (%s)", strings.Join(gameTypes, ", "))
+
 	dealCmd := &cobra.Command{
 		Use:   "deal",
 		Short: "Deal cards in Hold'em style",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Validate game type
-			options.GameType = strings.ToLower(options.GameType)
-			var gameType holdem.GameType
-			switch options.GameType {
-			case "texas":
-				gameType = holdem.Texas
-			case "omaha":
-				gameType = holdem.Omaha
-			case "short":
-				gameType = holdem.Short
-			default:
-				fmt.Printf("Error: Invalid game type '%s'. Must be one of: texas, omaha, short\n", options.GameType)
+			// Convert string game type to GameType enum
+			gameType, err := holdem.ParseGameType(*gameTypeStr)
+			if err != nil {
+				fmt.Println(err)
 				os.Exit(1)
 			}
+			options.GameType = gameType
 
 			// Create new holdem game
-			game := holdem.NewGame(gameType, options.NumPlayers)
+			game := holdem.NewGame(options.GameType, options.NumPlayers)
 
 			// Deal initial cards
 			if err := game.StartHand(); err != nil {
@@ -93,7 +97,7 @@ func createDealCmd(options *HoldemOptions) *cobra.Command {
 
 	dealCmd.Flags().IntVarP(&options.NumPlayers, "players", "p", 2, "Number of players")
 	dealCmd.Flags().IntVarP(&options.NumCardsPerPlayer, "numberofcards", "n", 2, "Number of cards per player")
-	dealCmd.Flags().StringVarP(&options.GameType, "type", "t", "texas", "Game type (texas, omaha, short)")
+	dealCmd.Flags().StringVarP(gameTypeStr, "type", "t", holdem.Texas.String(), gameTypeHelp)
 
 	return dealCmd
 }

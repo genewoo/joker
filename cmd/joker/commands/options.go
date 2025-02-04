@@ -1,5 +1,9 @@
 package commands
 
+import (
+	"github.com/genewoo/joker/internal/holdem"
+)
+
 // CommonOptions contains options shared between different game types
 type CommonOptions struct {
 	NumPlayers        int
@@ -17,7 +21,7 @@ type StandardOptions struct {
 // HoldemOptions contains options specific to holdem game commands
 type HoldemOptions struct {
 	CommonOptions
-	GameType       string
+	GameType       holdem.GameType
 	NumSimulations int
 	PlayerCards    []string
 	CommunityCards string

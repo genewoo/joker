@@ -185,8 +185,8 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	}
 
 	// Calculate probabilities
-	probabilities := make([]float64, len(wc.players)+1)  // Add extra slot for tie percentage
-	totalSimulations := float64(len(communityCardHands)) // Use actual number of hands dealt
+	probabilities := make([]float64, len(wc.players)+1) // Add extra slot for tie percentage
+	totalSimulations := float64(requiredSimulations)    // Use the calculated required simulations
 	for i, wins := range results {
 		probabilities[i] = float64(wins) / totalSimulations
 	}

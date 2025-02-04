@@ -5,6 +5,7 @@ package holdem
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/genewoo/joker/internal/dealer"
 	"github.com/genewoo/joker/internal/deck"
@@ -22,42 +23,41 @@ const (
 	Omaha
 )
 
-// highCardsPattern matches cards with values 6 and above (6-10, J, Q, K, A)
-var highCardsPattern = regexp.MustCompile(`^([6-9]|10|[JQKA])`)
-
-// getCardRank converts card value to numeric rank (2-14, where Ace is 14)
-func getCardRank(value string) int {
-	switch value {
-	case "A":
-		return 14
-	case "K":
-		return 13
-	case "Q":
-		return 12
-	case "J":
-		return 11
-	case "10":
-		return 10
-	case "9":
-		return 9
-	case "8":
-		return 8
-	case "7":
-		return 7
-	case "6":
-		return 6
-	case "5":
-		return 5
-	case "4":
-		return 4
-	case "3":
-		return 3
-	case "2":
-		return 2
+// String returns the string representation of the GameType
+func (g GameType) String() string {
+	switch g {
+	case Texas:
+		return "texas"
+	case Short:
+		return "short"
+	case Omaha:
+		return "omaha"
 	default:
-		return 0
+		return "unknown"
 	}
 }
+
+// AllGameTypes returns a slice of all available game types
+func AllGameTypes() []GameType {
+	return []GameType{Texas, Omaha, Short}
+}
+
+// ParseGameType converts a string to a GameType
+func ParseGameType(s string) (GameType, error) {
+	switch strings.ToLower(s) {
+	case "texas":
+		return Texas, nil
+	case "short":
+		return Short, nil
+	case "omaha":
+		return Omaha, nil
+	default:
+		return Texas, fmt.Errorf("invalid game type '%s'. Must be one of: texas, omaha, short", s)
+	}
+}
+
+// highCardsPattern matches cards with values 6 and above (6-10, J, Q, K, A)
+var highCardsPattern = regexp.MustCompile(`^([6-9]|10|[JQKA])`)
 
 // Game represents a Texas Hold'em poker game instance, managing the deck,
 // players, community cards, and game state.

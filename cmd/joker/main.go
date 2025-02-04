@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/genewoo/joker/cmd/joker/commands"
+	"github.com/genewoo/joker/internal/holdem"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +33,7 @@ and card dealings for different types of poker games.`,
 			NumPlayers:        2,
 			NumCardsPerPlayer: 2,
 		},
-		GameType:       "texas",
+		GameType:       holdem.Texas,
 		NumSimulations: 10000,
 	}
 
