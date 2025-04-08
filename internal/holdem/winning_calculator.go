@@ -14,11 +14,12 @@ import (
 // by simulating multiple games with random community cards and evaluating
 // the best possible hand for each player.
 type WinningCalculator struct {
-	simulations    int            // Number of simulations to run
-	players        [][]*deck.Card // Each player's hole cards
-	communityCards []*deck.Card   // Pre-existing community cards
-	rng            *rand.Rand     // Random number generator for simulations
-	ranker         HandRanker     // Hand ranking implementation to use
+	simulations       int            // Number of simulations to run
+	players           [][]*deck.Card // Each player's hole cards
+	communityCards    []*deck.Card   // Pre-existing community cards
+	rng               *rand.Rand     // Random number generator for simulations
+	ranker            HandRanker     // Hand ranking implementation to use
+	disableGoroutines bool           // flag to disable goroutines for debugging
 }
 
 // NewWinningCalculator creates a new WinningCalculator with specified players and simulations.
@@ -32,16 +33,14 @@ func NewWinningCalculator(players [][]*deck.Card, simulations int, ranker HandRa
 		communityCards = communityCards[:5] // Allow up to 5 community cards for showdown
 	}
 	return &WinningCalculator{
-		simulations:    simulations,
-		players:        players,
-		communityCards: communityCards,
-		rng:            rand.New(rand.NewSource(time.Now().UnixNano())),
-		ranker:         ranker,
+		simulations:       simulations,
+		players:           players,
+		communityCards:    communityCards,
+		rng:               rand.New(rand.NewSource(time.Now().UnixNano())),
+		ranker:            ranker,
+		disableGoroutines: true,
 	}
 }
-
-// Hardcode flag to disable goroutines for debugging
-var disableGoroutines = true
 
 // calculateRequiredSimulations determines the number of simulations needed
 // based on the number of remaining community cards.
@@ -105,7 +104,7 @@ func (wc *WinningCalculator) CalculateWinProbabilities() []float64 {
 	// Draw remaining community cards for each simulation
 	communityCardHands := d.DrawWithLimitHands(remainingCards, requiredSimulations)
 
-	if disableGoroutines {
+	if wc.disableGoroutines {
 		// Run simulations sequentially
 		localResults := make([]float64, len(wc.players))
 		for j := 0; j < len(communityCardHands); j++ {

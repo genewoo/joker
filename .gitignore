@@ -33,3 +33,4 @@ pkg/
 .vscode/
 *.swp
 *.swo
+.aider*
