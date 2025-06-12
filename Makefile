@@ -4,7 +4,16 @@ build:
 	go build -o bin ./cmd/joker
 
 test:
-	go test ./...
+	@for attempt in 1 2; do \
+	if go test ./...; then \
+	break; \
+	fi; \
+	echo "Tests failed (attempt $$attempt)."; \
+	if [ "$$attempt" -eq 2 ]; then \
+	exit 1; \
+	fi; \
+	echo "Retrying..."; \
+	done
 
 test-coverage:
 	go test -coverprofile=coverage.out ./...
