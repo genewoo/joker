@@ -9,7 +9,7 @@ This project uses Codex to help automate coding tasks. Follow these best practic
 
 ## Commit Messages
 - Keep commits focused and descriptive.
-- Use the imperative mood ("Add feature" not "Added feature").
+- Follow git conventional commits.
 
 ## Pull Requests
 - Summarize the change and reference relevant issues if any.
