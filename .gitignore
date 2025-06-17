@@ -34,3 +34,8 @@ pkg/
 *.swp
 *.swo
 .aider*
+
+# Clacky-related configuration
+.1024*
+!.1024
+.breakpoints
